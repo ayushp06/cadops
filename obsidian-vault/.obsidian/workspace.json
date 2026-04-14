@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "05 Roadmap/Roadmap.md",
+                "file": "02 Product/MVP Scope.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Roadmap"
+              "title": "MVP Scope"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "05 Roadmap/Roadmap.md",
+                "file": "02 Product/MVP Scope.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Roadmap"
+              "title": "Backlinks for MVP Scope"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "05 Roadmap/Roadmap.md",
+                "file": "02 Product/MVP Scope.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from Roadmap"
+              "title": "Outgoing links from MVP Scope"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "05 Roadmap/Roadmap.md",
+                "file": "02 Product/MVP Scope.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Roadmap"
+              "title": "Outline of MVP Scope"
             }
           }
         ]
@@ -185,6 +185,7 @@
   },
   "active": "9f476d03b716ac79",
   "lastOpenFiles": [
+    "05 Roadmap/Roadmap.md",
     "04 Commands/cadops snapshot.md",
     "04 Commands/cadops watch.md",
     "06 Engineering/Implementation Plan.md",

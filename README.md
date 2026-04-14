@@ -2,6 +2,63 @@
 
 CadOps is a CAD-aware command-line workflow layer over Git and Git LFS. The MVP provides safe repository initialization, CAD-aware status output, repository health checks, and repository watching for file-based CAD workflows.
 
+CadOps requires both `git` and `git lfs` to be installed on the user machine.
+
+## Installation
+
+### Build From Source
+
+Prerequisites:
+
+- Go 1.26+
+- Git
+- Git LFS
+
+Build the binary locally:
+
+```bash
+make build
+```
+
+This writes the binary to:
+
+- `bin/cadops` on Linux and macOS
+- `bin/cadops.exe` on Windows
+
+To install it to your Go bin directory:
+
+```bash
+make install
+```
+
+Make sure your Go bin directory is on `PATH`.
+
+### Install From GitHub Releases
+
+1. Open the latest release on GitHub.
+2. Download the archive for your platform:
+   - `windows-amd64`
+   - `windows-arm64`
+   - `linux-amd64`
+   - `linux-arm64`
+   - `darwin-amd64`
+   - `darwin-arm64`
+3. Extract the archive.
+4. Put `cadops` or `cadops.exe` somewhere on your `PATH`.
+5. Ensure `git` and `git lfs` are installed on the machine.
+
+Release archives contain the binary as `cadops` or `cadops.exe`.
+
+### Verify Installation
+
+Create or enter a Git repository, initialize CadOps if needed, then run:
+
+```bash
+cadops doctor
+```
+
+If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor` will report repository health checks instead of failing due to a missing command.
+
 ## Commands
 
 - `cadops init`

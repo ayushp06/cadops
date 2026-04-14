@@ -1,0 +1,90 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.goos }}-${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: windows
+            goarch: amd64
+            archive: zip
+            binary: cadops.exe
+          - goos: windows
+            goarch: arm64
+            archive: zip
+            binary: cadops.exe
+          - goos: linux
+            goarch: amd64
+            archive: tar.gz
+            binary: cadops
+          - goos: linux
+            goarch: arm64
+            archive: tar.gz
+            binary: cadops
+          - goos: darwin
+            goarch: amd64
+            archive: tar.gz
+            binary: cadops
+          - goos: darwin
+            goarch: arm64
+            archive: tar.gz
+            binary: cadops
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          out_dir="dist/cadops-${{ matrix.goos }}-${{ matrix.goarch }}"
+          mkdir -p "$out_dir"
+          GOOS="${{ matrix.goos }}" GOARCH="${{ matrix.goarch }}" go build -o "$out_dir/${{ matrix.binary }}" ./cmd/cadops
+
+      - name: Package zip archive
+        if: matrix.archive == 'zip'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          archive="cadops-${{ matrix.goos }}-${{ matrix.goarch }}.zip"
+          zip -j "$archive" "cadops-${{ matrix.goos }}-${{ matrix.goarch }}/${{ matrix.binary }}"
+
+      - name: Package tar.gz archive
+        if: matrix.archive == 'tar.gz'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          archive="cadops-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz"
+          tar -czf "$archive" -C "cadops-${{ matrix.goos }}-${{ matrix.goarch }}" "${{ matrix.binary }}"
+
+      - name: Upload archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cadops-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/cadops-${{ matrix.goos }}-${{ matrix.goarch }}.${{ matrix.archive }}
+
+      - name: Publish release archive
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/cadops-${{ matrix.goos }}-${{ matrix.goarch }}.${{ matrix.archive }}
