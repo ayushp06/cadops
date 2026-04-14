@@ -1,6 +1,7 @@
 package gitx
 
 import (
+	"path/filepath"
 	"strings"
 )
 
@@ -28,4 +29,22 @@ func ListTrackedPatterns(runner Runner, dir string) ([]string, error) {
 		patterns = append(patterns, strings.Trim(parts[0], "\""))
 	}
 	return patterns, nil
+}
+
+// HasLFS reports whether Git LFS is available in the current environment.
+func HasLFS(runner Runner, dir string) bool {
+	_, err := runner.Run(dir, "git", "lfs", "version")
+	return err == nil
+}
+
+// LockPath acquires a Git LFS lock for the given repository path.
+func LockPath(runner Runner, dir, path string) error {
+	_, err := runner.Run(dir, "git", "lfs", "lock", filepath.ToSlash(path))
+	return err
+}
+
+// UnlockPath releases a Git LFS lock for the given repository path.
+func UnlockPath(runner Runner, dir, path string) error {
+	_, err := runner.Run(dir, "git", "lfs", "unlock", filepath.ToSlash(path))
+	return err
 }

@@ -42,23 +42,22 @@ func runSnapshot(dir string, now time.Time) error {
 		return err
 	}
 
-	paths := snapshot.SelectPaths(entries, cfg.TrackedExtensions)
-	if len(paths) == 0 {
-		return fmt.Errorf("no changed CAD files to snapshot")
+	plan, err := snapshot.BuildPlan(entries, cfg.TrackedExtensions, now)
+	if err != nil {
+		return err
 	}
 
-	for _, path := range paths {
+	for _, path := range plan.Paths {
 		if err := gitx.StagePath(runner, dir, path); err != nil {
 			return fmt.Errorf("stage %s: %w", path, err)
 		}
 	}
 
-	message := snapshot.BuildMessage(now)
-	if err := gitx.CommitPaths(runner, dir, message, paths); err != nil {
+	if err := gitx.CommitPaths(runner, dir, plan.Message, plan.Paths); err != nil {
 		return err
 	}
 
-	fmt.Printf("Created snapshot commit: %s\n", message)
-	fmt.Printf("CAD files: %d\n", len(paths))
+	fmt.Printf("Created snapshot commit: %s\n", plan.Message)
+	fmt.Printf("CAD files: %d\n", len(plan.Paths))
 	return nil
 }

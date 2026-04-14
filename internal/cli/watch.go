@@ -50,14 +50,13 @@ func runWatch(dir string) error {
 
 	watcher := watch.New(dir, cfg.TrackedExtensions)
 	return watcher.Run(ctx, func(event watch.Event) {
-		status := fmt.Sprintf("%s %s", event.Kind, event.Path)
-		if cfg.AutoStage {
-			if err := gitx.StagePath(runner, dir, event.Path); err != nil {
-				fmt.Printf("stage error %s: %v\n", event.Path, err)
-				return
-			}
-			status += " staged"
+		status, err := watch.ProcessEvent(event, cfg.AutoStage, func(path string) error {
+			return gitx.StagePath(runner, dir, path)
+		})
+		if err != nil {
+			fmt.Printf("stage error %s: %v\n", event.Path, err)
+			return
 		}
-		fmt.Println(status)
+		fmt.Println(status.Line())
 	})
 }
