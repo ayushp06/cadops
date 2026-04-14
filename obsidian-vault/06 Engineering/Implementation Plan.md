@@ -1,3 +1,3 @@
 # Implementation Plan
 
-Build the CLI scaffold, implement Git helpers, add command logic, then harden the core with tests.
+Build thin Cobra handlers around small internal packages, keep repository watch and snapshot decision behavior outside command code, and isolate pure filtering, debounce, and snapshot-selection rules for tests.
