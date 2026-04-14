@@ -1,0 +1,28 @@
+# Build outputs
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace files
+bin/
+dist/
+coverage.out
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# CAD and workstation artifacts
+*.bak
+*.tmp
+*.swp
+*.lock
+
+# CadOps
+.cadops-cache/
