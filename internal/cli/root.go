@@ -7,8 +7,9 @@ import (
 // NewRootCmd creates the top-level cadops command.
 func NewRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cadops",
-		Short: "CAD-aware Git workflow helpers",
+		Use:          "cadops",
+		Short:        "CAD-aware Git workflow helpers",
+		SilenceUsage: true,
 	}
 
 	cmd.AddCommand(newInitCmd())
