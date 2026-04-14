@@ -18,6 +18,10 @@ func NewRootCmd() *cobra.Command {
 	cmd.AddCommand(newSnapshotCmd())
 	cmd.AddCommand(newLockCmd())
 	cmd.AddCommand(newUnlockCmd())
+	cmd.AddCommand(newConfigCmd())
+	cmd.AddCommand(newPushCmd())
+	cmd.AddCommand(newPullCmd())
+	cmd.AddCommand(newHistoryCmd())
 
 	return cmd
 }

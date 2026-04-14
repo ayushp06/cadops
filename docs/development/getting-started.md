@@ -33,3 +33,26 @@ To create a CAD-only snapshot commit:
 ```bash
 go run ./cmd/cadops snapshot
 ```
+
+To inspect repository configuration:
+
+```bash
+go run ./cmd/cadops config show
+go run ./cmd/cadops config get tracked_extensions
+```
+
+To run guarded collaboration commands:
+
+```bash
+go run ./cmd/cadops push
+go run ./cmd/cadops pull
+```
+
+`push` and `pull` keep Git execution simple, but surface CAD-aware warnings before delegating to the underlying Git command.
+
+To view recent CAD-aware commit history:
+
+```bash
+go run ./cmd/cadops history
+go run ./cmd/cadops history --limit 5
+```

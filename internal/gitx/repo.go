@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -24,6 +25,12 @@ type RepoState struct {
 // IsRepo reports whether the working directory is inside a Git repository.
 func IsRepo(runner Runner, dir string) bool {
 	_, err := runner.Run(dir, "git", "rev-parse", "--is-inside-work-tree")
+	return err == nil
+}
+
+// HasCommits reports whether the repository has at least one commit.
+func HasCommits(runner Runner, dir string) bool {
+	_, err := runner.Run(dir, "git", "rev-parse", "--verify", "HEAD")
 	return err == nil
 }
 
@@ -68,6 +75,35 @@ func ParseStatusPorcelain(out string) []StatusEntry {
 func HasRemote(runner Runner, dir string) bool {
 	result, err := runner.Run(dir, "git", "remote")
 	return err == nil && strings.TrimSpace(result.Stdout) != ""
+}
+
+// Push runs `git push` in the repository.
+func Push(runner Runner, dir string) error {
+	_, err := runner.Run(dir, "git", "push")
+	return err
+}
+
+// Pull runs `git pull` in the repository.
+func Pull(runner Runner, dir string) error {
+	_, err := runner.Run(dir, "git", "pull")
+	return err
+}
+
+// RecentHistory returns constrained git log output for recent commits.
+func RecentHistory(runner Runner, dir string, limit int) (string, error) {
+	result, err := runner.Run(
+		dir,
+		"git",
+		"log",
+		"-n", strconv.Itoa(limit),
+		"--date=short",
+		"--pretty=format:%H%x1f%ad%x1f%s%x1e",
+		"--name-only",
+	)
+	if err != nil {
+		return "", err
+	}
+	return result.Stdout, nil
 }
 
 // ListTrackedFiles returns the tracked repository files.
