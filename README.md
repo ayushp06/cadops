@@ -63,6 +63,7 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 - `cadops init`
 - `cadops status`
+- `cadops files`
 - `cadops doctor`
 - `cadops watch`
 - `cadops snapshot`
@@ -77,6 +78,8 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 `cadops watch` monitors the current repository recursively, reacts only to CAD extensions configured in `.cadops.yaml`, prints concise change lines, and can auto-stage changed CAD files when `auto_stage: true`.
 
 `cadops snapshot` stages changed CAD files and creates a timestamped snapshot commit like `snapshot: 2026-04-14 15:42`. It fails if there are no relevant CAD changes.
+
+`cadops files` scans the current Git repository recursively for configured CAD extensions, groups matches by CAD type, and shows each file path with its CAD type and lock recommendation.
 
 `cadops config show` prints the supported `.cadops.yaml` keys in a concise terminal format. `cadops config get <key>` returns a single value for `version`, `tracked_extensions`, `auto_stage`, `require_lfs`, or `locking_enabled`.
 

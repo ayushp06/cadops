@@ -28,6 +28,15 @@ func IsRepo(runner Runner, dir string) bool {
 	return err == nil
 }
 
+// RepoRoot returns the repository top-level directory for the given path.
+func RepoRoot(runner Runner, dir string) (string, error) {
+	result, err := runner.Run(dir, "git", "rev-parse", "--show-toplevel")
+	if err != nil {
+		return "", err
+	}
+	return filepath.Clean(strings.TrimSpace(result.Stdout)), nil
+}
+
 // HasCommits reports whether the repository has at least one commit.
 func HasCommits(runner Runner, dir string) bool {
 	_, err := runner.Run(dir, "git", "rev-parse", "--verify", "HEAD")

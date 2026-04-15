@@ -41,6 +41,12 @@ go run ./cmd/cadops config show
 go run ./cmd/cadops config get tracked_extensions
 ```
 
+To list CAD-relevant files in the current repository:
+
+```bash
+go run ./cmd/cadops files
+```
+
 To run guarded collaboration commands:
 
 ```bash
