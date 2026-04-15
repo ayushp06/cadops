@@ -1,6 +1,6 @@
 # CadOps
 
-CadOps is a CAD-aware command-line workflow layer over Git and Git LFS. The current CLI provides safe repository initialization, CAD-aware status output, repository health checks, repository watching, snapshot commits, guarded CAD-aware commits, config inspection, guarded push and pull flows, CAD-aware history output, and Git LFS lock helpers for file-based CAD workflows.
+CadOps is a CAD-aware command-line workflow layer over Git and Git LFS. The current CLI provides safe repository initialization, CAD-aware status output, repository health checks, repository watching, snapshot commits, guarded CAD-aware commits, config inspection, metadata generation and lookup, guarded push and pull flows, CAD-aware history output, and Git LFS lock helpers for file-based CAD workflows.
 
 CadOps requires both `git` and `git lfs` to be installed on the user machine.
 
@@ -65,6 +65,8 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 - `cadops status`
 - `cadops diff`
 - `cadops files`
+- `cadops metadata generate`
+- `cadops metadata show <file>`
 - `cadops doctor`
 - `cadops watch`
 - `cadops snapshot`
@@ -87,6 +89,8 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 `cadops diff` summarizes current Git working tree changes, separates CAD and non-CAD files using configured extensions, and prints concise Git-backed change statuses such as modified, added, deleted, and renamed.
 
+`cadops metadata generate` scans the current Git repository for configured CAD extensions, classifies matching files with the built-in CAD registry, computes filesystem-level metadata including size, modified time, SHA-256, LFS expectation, and lock recommendation, and writes a single manifest to `.cadops/metadata/manifest.json`. `cadops metadata show <file>` reads that manifest and prints the stored record for one CAD file.
+
 `cadops config show` prints the supported `.cadops.yaml` keys in a concise terminal format. `cadops config get <key>` returns a single value for `version`, `tracked_extensions`, `auto_stage`, `require_lfs`, or `locking_enabled`.
 
 `cadops push` runs light CAD-aware pre-push checks, warns about local CAD changes or missing LFS coverage, and stops early when no remote is configured before delegating to `git push`.
@@ -97,7 +101,7 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 `cadops lock` and `cadops unlock` wrap `git lfs lock` and `git lfs unlock`, validate that the target file exists, and warn when locking is recommended for the file type but Git LFS is not configured correctly for that type.
 
-CadOps does not auto-commit from `watch`, does not implement semantic CAD diffing, and does not implement semantic CAD history yet.
+CadOps does not auto-commit from `watch`, does not implement semantic CAD diffing, does not implement geometry-aware metadata, and does not implement semantic CAD history yet.
 
 ## Development
 

@@ -53,6 +53,13 @@ To summarize current Git-backed repository changes:
 go run ./cmd/cadops diff
 ```
 
+To generate and inspect stored CAD metadata:
+
+```bash
+go run ./cmd/cadops metadata generate
+go run ./cmd/cadops metadata show parts/gearbox.sldprt
+```
+
 To create a standard Git commit with CAD-aware preflight checks:
 
 ```bash
