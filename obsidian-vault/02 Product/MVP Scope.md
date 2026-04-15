@@ -1,6 +1,6 @@
 # MVP Scope
 
-The MVP includes `cadops init`, `cadops status`, `cadops doctor`, `cadops watch`, `cadops snapshot`, `cadops config`, `cadops push`, `cadops pull`, and `cadops history`.
+The MVP includes `cadops init`, `cadops status`, `cadops diff`, `cadops doctor`, `cadops watch`, `cadops snapshot`, `cadops config`, `cadops push`, `cadops pull`, and `cadops history`.
 
 `cadops watch` covers recursive repository watching, configured CAD extension filtering, concise status lines, and optional auto-staging only.
 
@@ -10,6 +10,8 @@ Auto-commit and preview generation are intentionally deferred.
 
 `cadops config` is read-only in the current phase and focuses on clear inspection of `.cadops.yaml`.
 
-`cadops push` and `cadops pull` add lightweight collaboration guardrails around the underlying Git commands without attempting advanced merge, diff, or history analysis yet.
+`cadops diff` adds a readable Git-backed working tree summary with CAD versus non-CAD grouping, while still deferring semantic CAD diffing, previews, and metadata comparison.
 
-`cadops history` adds a readable recent commit view with CAD file filtering, but still defers semantic change detection and advanced diff presentation.
+`cadops push` and `cadops pull` add lightweight collaboration guardrails around the underlying Git commands without attempting advanced merge or history analysis.
+
+`cadops history` adds a readable recent commit view with CAD file filtering, but still defers semantic change detection.

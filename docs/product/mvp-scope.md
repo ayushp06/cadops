@@ -4,6 +4,7 @@ CadOps MVP intentionally covers the core repository, collaboration, and inspecti
 
 - `cadops init`
 - `cadops status`
+- `cadops diff`
 - `cadops doctor`
 - `cadops watch`
 - `cadops snapshot`
@@ -18,4 +19,6 @@ The product goal is safe Git and Git LFS setup for CAD-heavy repositories withou
 
 `cadops snapshot` is limited to CAD-file snapshots with an auto-generated timestamped commit message. Including other modified files and smart grouping remain out of scope.
 
-`cadops history` is limited to recent Git-backed commit output with CAD file filtering. Advanced diffing, previews, and semantic change detection remain out of scope.
+`cadops diff` is limited to Git-backed working tree summaries grouped into CAD and non-CAD changes. Semantic CAD diffing, previews, and metadata comparison remain out of scope.
+
+`cadops history` is limited to recent Git-backed commit output with CAD file filtering. Semantic change detection remains out of scope.

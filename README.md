@@ -63,6 +63,7 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 - `cadops init`
 - `cadops status`
+- `cadops diff`
 - `cadops files`
 - `cadops doctor`
 - `cadops watch`
@@ -81,6 +82,8 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 `cadops files` scans the current Git repository recursively for configured CAD extensions, groups matches by CAD type, and shows each file path with its CAD type and lock recommendation.
 
+`cadops diff` summarizes current Git working tree changes, separates CAD and non-CAD files using configured extensions, and prints concise Git-backed change statuses such as modified, added, deleted, and renamed.
+
 `cadops config show` prints the supported `.cadops.yaml` keys in a concise terminal format. `cadops config get <key>` returns a single value for `version`, `tracked_extensions`, `auto_stage`, `require_lfs`, or `locking_enabled`.
 
 `cadops push` runs light CAD-aware pre-push checks, warns about local CAD changes or missing LFS coverage, and stops early when no remote is configured before delegating to `git push`.
@@ -91,7 +94,7 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 `cadops lock` and `cadops unlock` wrap `git lfs lock` and `git lfs unlock`, validate that the target file exists, and warn when locking is recommended for the file type but Git LFS is not configured correctly for that type.
 
-CadOps does not auto-commit from `watch`, does not implement advanced diffing yet, and does not implement semantic CAD history yet.
+CadOps does not auto-commit from `watch`, does not implement semantic CAD diffing, and does not implement semantic CAD history yet.
 
 ## Development
 

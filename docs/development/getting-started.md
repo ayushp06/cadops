@@ -47,6 +47,12 @@ To list CAD-relevant files in the current repository:
 go run ./cmd/cadops files
 ```
 
+To summarize current Git-backed repository changes:
+
+```bash
+go run ./cmd/cadops diff
+```
+
 To run guarded collaboration commands:
 
 ```bash

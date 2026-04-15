@@ -10,8 +10,9 @@ import (
 
 // StatusEntry represents a single line from `git status --porcelain`.
 type StatusEntry struct {
-	Code string
-	Path string
+	Code    string
+	Path    string
+	OldPath string
 }
 
 // RepoState captures basic repository state used by doctor and init.
@@ -68,13 +69,16 @@ func ParseStatusPorcelain(out string) []StatusEntry {
 		}
 		code := line[:2]
 		path := strings.TrimSpace(line[3:])
+		oldPath := ""
 		if strings.Contains(path, " -> ") {
 			parts := strings.Split(path, " -> ")
+			oldPath = strings.TrimSpace(parts[0])
 			path = strings.TrimSpace(parts[len(parts)-1])
 		}
 		entries = append(entries, StatusEntry{
-			Code: code,
-			Path: filepath.ToSlash(path),
+			Code:    code,
+			Path:    filepath.ToSlash(path),
+			OldPath: filepath.ToSlash(oldPath),
 		})
 	}
 	return entries

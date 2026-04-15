@@ -14,6 +14,9 @@ func TestParseStatusPorcelain(t *testing.T) {
 	if entries[0].Code != " M" || entries[0].Path != "parts/gearbox.sldprt" {
 		t.Fatalf("unexpected first entry: %+v", entries[0])
 	}
+	if entries[2].OldPath != "old.step" {
+		t.Fatalf("expected rename source path, got %q", entries[2].OldPath)
+	}
 	if entries[2].Path != "new.step" {
 		t.Fatalf("expected rename target path, got %q", entries[2].Path)
 	}
