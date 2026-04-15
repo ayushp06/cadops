@@ -64,6 +64,12 @@ func ParseStatusPorcelain(out string) []StatusEntry {
 	lines := strings.Split(strings.ReplaceAll(out, "\r\n", "\n"), "\n")
 	entries := make([]StatusEntry, 0, len(lines))
 	for _, line := range lines {
+		if len(line) < 3 {
+			continue
+		}
+		if line[1] == ' ' && line[2] != ' ' {
+			line = " " + line
+		}
 		if len(line) < 4 {
 			continue
 		}

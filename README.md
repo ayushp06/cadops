@@ -82,7 +82,7 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 `cadops watch` monitors the current repository recursively, reacts only to CAD extensions configured in `.cadops.yaml`, prints concise change lines, and can auto-stage changed CAD files when `auto_stage: true`.
 
-`cadops snapshot` stages changed CAD files and creates a timestamped snapshot commit like `snapshot: 2026-04-14 15:42`. It fails if there are no relevant CAD changes.
+`cadops snapshot` stages changed CAD files, regenerates the repo metadata manifest before commit, includes `.cadops/metadata/manifest.json` in the same snapshot when the refresh succeeds, and creates a timestamped snapshot commit like `snapshot: 2026-04-14 15:42`. Metadata refresh warnings do not block snapshot creation.
 
 `cadops commit -m "message"` runs CAD-aware pre-commit checks, warns about unstaged changes, missing LFS coverage, and missing local locks for recommended-lock CAD files when lock inspection is available, then delegates to `git commit -m`.
 
@@ -92,7 +92,7 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 `cadops scan` audits the current repository for configured CAD files, summarizes counts by CAD type, highlights locking and Git LFS expectations, warns about missing `.gitattributes` LFS rules for expected CAD file types, and shows the largest CAD files plus top CAD-heavy directories. It uses stored metadata when available and falls back to a live scan when metadata is absent.
 
-`cadops metadata generate` scans the current Git repository for configured CAD extensions, classifies matching files with the built-in CAD registry, computes filesystem-level metadata including size, modified time, SHA-256, LFS expectation, and lock recommendation, and writes a single manifest to `.cadops/metadata/manifest.json`. `cadops metadata show <file>` reads that manifest and prints the stored record for one CAD file.
+`cadops metadata generate` scans the current Git repository for configured CAD extensions, classifies matching files with the built-in CAD registry, computes filesystem-level metadata including size, modified time, SHA-256, LFS expectation, and lock recommendation, and writes a single manifest to `.cadops/metadata/manifest.json`. `cadops metadata show <file>` reads that manifest and prints the stored record for one CAD file. Snapshot commits also refresh this manifest automatically before commit for consistency.
 
 `cadops config show` prints the supported `.cadops.yaml` keys in a concise terminal format. `cadops config get <key>` returns a single value for `version`, `tracked_extensions`, `auto_stage`, `require_lfs`, or `locking_enabled`.
 

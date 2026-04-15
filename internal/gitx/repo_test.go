@@ -33,3 +33,20 @@ func TestMergeAttributes(t *testing.T) {
 		t.Fatalf("unexpected merged attributes:\n%s", merged)
 	}
 }
+
+func TestParseStatusPorcelainHandlesTrimmedLeadingSpace(t *testing.T) {
+	t.Parallel()
+
+	output := "M parts/gearbox.sldprt\n?? notes.txt\n"
+	entries := ParseStatusPorcelain(output)
+
+	if len(entries) != 2 {
+		t.Fatalf("expected 2 entries, got %d", len(entries))
+	}
+	if entries[0].Code != " M" {
+		t.Fatalf("expected normalized modified code, got %q", entries[0].Code)
+	}
+	if entries[0].Path != "parts/gearbox.sldprt" {
+		t.Fatalf("expected normalized path, got %q", entries[0].Path)
+	}
+}

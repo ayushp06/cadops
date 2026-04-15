@@ -34,6 +34,8 @@ To create a CAD-only snapshot commit:
 go run ./cmd/cadops snapshot
 ```
 
+`snapshot` refreshes `.cadops/metadata/manifest.json` before commit and includes it in the snapshot when metadata generation succeeds.
+
 To inspect repository configuration:
 
 ```bash
