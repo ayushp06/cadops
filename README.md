@@ -1,6 +1,6 @@
 # CadOps
 
-CadOps is a CAD-aware command-line workflow layer over Git and Git LFS. The current CLI provides safe repository initialization, CAD-aware status output, repository health checks, repository watching, snapshot commits, guarded CAD-aware commits, config inspection, metadata generation and lookup, guarded push and pull flows, CAD-aware history output, and Git LFS lock helpers for file-based CAD workflows.
+CadOps is a CAD-aware command-line workflow layer over Git and Git LFS. The current CLI provides safe repository initialization, CAD-aware status output, repository health checks, CAD repository scanning, repository watching, snapshot commits, guarded CAD-aware commits, config inspection, metadata generation and lookup, guarded push and pull flows, CAD-aware history output, and Git LFS lock helpers for file-based CAD workflows.
 
 CadOps requires both `git` and `git lfs` to be installed on the user machine.
 
@@ -65,6 +65,7 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 - `cadops status`
 - `cadops diff`
 - `cadops files`
+- `cadops scan`
 - `cadops metadata generate`
 - `cadops metadata show <file>`
 - `cadops doctor`
@@ -88,6 +89,8 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 `cadops files` scans the current Git repository recursively for configured CAD extensions, groups matches by CAD type, and shows each file path with its CAD type and lock recommendation.
 
 `cadops diff` summarizes current Git working tree changes, separates CAD and non-CAD files using configured extensions, and prints concise Git-backed change statuses such as modified, added, deleted, and renamed.
+
+`cadops scan` audits the current repository for configured CAD files, summarizes counts by CAD type, highlights locking and Git LFS expectations, warns about missing `.gitattributes` LFS rules for expected CAD file types, and shows the largest CAD files plus top CAD-heavy directories. It uses stored metadata when available and falls back to a live scan when metadata is absent.
 
 `cadops metadata generate` scans the current Git repository for configured CAD extensions, classifies matching files with the built-in CAD registry, computes filesystem-level metadata including size, modified time, SHA-256, LFS expectation, and lock recommendation, and writes a single manifest to `.cadops/metadata/manifest.json`. `cadops metadata show <file>` reads that manifest and prints the stored record for one CAD file.
 

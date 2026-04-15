@@ -53,6 +53,12 @@ To summarize current Git-backed repository changes:
 go run ./cmd/cadops diff
 ```
 
+To audit CAD assets and repository configuration risk:
+
+```bash
+go run ./cmd/cadops scan
+```
+
 To generate and inspect stored CAD metadata:
 
 ```bash
