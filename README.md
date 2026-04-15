@@ -1,6 +1,6 @@
 # CadOps
 
-CadOps is a CAD-aware command-line workflow layer over Git and Git LFS. The current CLI provides safe repository initialization, CAD-aware status output, repository health checks, repository watching, snapshot commits, config inspection, guarded push and pull flows, CAD-aware history output, and Git LFS lock helpers for file-based CAD workflows.
+CadOps is a CAD-aware command-line workflow layer over Git and Git LFS. The current CLI provides safe repository initialization, CAD-aware status output, repository health checks, repository watching, snapshot commits, guarded CAD-aware commits, config inspection, guarded push and pull flows, CAD-aware history output, and Git LFS lock helpers for file-based CAD workflows.
 
 CadOps requires both `git` and `git lfs` to be installed on the user machine.
 
@@ -68,6 +68,7 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 - `cadops doctor`
 - `cadops watch`
 - `cadops snapshot`
+- `cadops commit -m <message>`
 - `cadops config show`
 - `cadops config get <key>`
 - `cadops push`
@@ -79,6 +80,8 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 `cadops watch` monitors the current repository recursively, reacts only to CAD extensions configured in `.cadops.yaml`, prints concise change lines, and can auto-stage changed CAD files when `auto_stage: true`.
 
 `cadops snapshot` stages changed CAD files and creates a timestamped snapshot commit like `snapshot: 2026-04-14 15:42`. It fails if there are no relevant CAD changes.
+
+`cadops commit -m "message"` runs CAD-aware pre-commit checks, warns about unstaged changes, missing LFS coverage, and missing local locks for recommended-lock CAD files when lock inspection is available, then delegates to `git commit -m`.
 
 `cadops files` scans the current Git repository recursively for configured CAD extensions, groups matches by CAD type, and shows each file path with its CAD type and lock recommendation.
 

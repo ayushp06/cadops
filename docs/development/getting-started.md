@@ -53,6 +53,12 @@ To summarize current Git-backed repository changes:
 go run ./cmd/cadops diff
 ```
 
+To create a standard Git commit with CAD-aware preflight checks:
+
+```bash
+go run ./cmd/cadops commit -m "update bracket geometry"
+```
+
 To run guarded collaboration commands:
 
 ```bash

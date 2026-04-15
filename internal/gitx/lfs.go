@@ -1,6 +1,7 @@
 package gitx
 
 import (
+	"encoding/json"
 	"path/filepath"
 	"strings"
 )
@@ -35,6 +36,33 @@ func ListTrackedPatterns(runner Runner, dir string) ([]string, error) {
 func HasLFS(runner Runner, dir string) bool {
 	_, err := runner.Run(dir, "git", "lfs", "version")
 	return err == nil
+}
+
+// ListLocalLocks returns the locally cached Git LFS locks by repository path.
+func ListLocalLocks(runner Runner, dir string) (map[string]bool, error) {
+	result, err := runner.Run(dir, "git", "lfs", "locks", "--local", "--json")
+	if err != nil {
+		return nil, err
+	}
+
+	var payload struct {
+		Locks []struct {
+			Path string `json:"path"`
+		} `json:"locks"`
+	}
+	if err := json.Unmarshal([]byte(result.Stdout), &payload); err != nil {
+		return nil, err
+	}
+
+	lockedPaths := make(map[string]bool, len(payload.Locks))
+	for _, lock := range payload.Locks {
+		path := filepath.ToSlash(strings.TrimSpace(lock.Path))
+		if path == "" {
+			continue
+		}
+		lockedPaths[path] = true
+	}
+	return lockedPaths, nil
 }
 
 // LockPath acquires a Git LFS lock for the given repository path.
