@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/cadops/cadops/internal/config"
 	caddiff "github.com/cadops/cadops/internal/diff"
@@ -52,29 +51,6 @@ func runDiff(dir string) error {
 	}
 
 	entries := caddiff.BuildEntries(statusEntries, cfg.TrackedExtensions)
-	fmt.Print(formatDiffReport(caddiff.Summarize(entries)))
+	fmt.Print(caddiff.FormatReport(caddiff.BuildReport(repoRoot, entries)))
 	return nil
-}
-
-func formatDiffReport(summary caddiff.Summary) string {
-	total := len(summary.CAD) + len(summary.Other)
-	if total == 0 {
-		return "No repository changes\n"
-	}
-
-	var builder strings.Builder
-	writeDiffGroup(&builder, "CAD changes", summary.CAD)
-	writeDiffGroup(&builder, "Other changes", summary.Other)
-	return builder.String()
-}
-
-func writeDiffGroup(builder *strings.Builder, title string, entries []caddiff.Entry) {
-	if len(entries) == 0 {
-		return
-	}
-	builder.WriteString(title)
-	builder.WriteString(":\n")
-	for _, entry := range entries {
-		builder.WriteString(fmt.Sprintf("  %s %s\n", entry.Kind, caddiff.DisplayPath(entry)))
-	}
 }

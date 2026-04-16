@@ -88,7 +88,7 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 `cadops files` scans the current Git repository recursively for configured CAD extensions, groups matches by CAD type, and shows each file path with its CAD type and lock recommendation.
 
-`cadops diff` summarizes current Git working tree changes, separates CAD and non-CAD files using configured extensions, and prints concise Git-backed change statuses such as modified, added, deleted, and renamed.
+`cadops diff` summarizes current Git working tree changes, separates CAD and non-CAD files using configured extensions, and prints concise Git-backed change statuses such as modified, added, deleted, and renamed. For changed CAD files it also uses the current metadata manifest as the baseline when available, compares that stored record against freshly derived file metadata when the file still exists locally, and adds compact context such as CAD type, lock recommendation, LFS expectation, checksum change, and file size delta.
 
 `cadops scan` audits the current repository for configured CAD files, summarizes counts by CAD type, highlights locking and Git LFS expectations, warns about missing `.gitattributes` LFS rules for expected CAD file types, and shows the largest CAD files plus top CAD-heavy directories. It uses stored metadata when available and falls back to a live scan when metadata is absent.
 
@@ -104,7 +104,7 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 `cadops lock` and `cadops unlock` wrap `git lfs lock` and `git lfs unlock`, validate that the target file exists, and warn when locking is recommended for the file type but Git LFS is not configured correctly for that type.
 
-CadOps does not auto-commit from `watch`, does not implement semantic CAD diffing, does not implement geometry-aware metadata, and does not implement semantic CAD history yet.
+CadOps does not auto-commit from `watch`, does not implement semantic CAD diffing, does not implement geometry-aware metadata, and does not implement semantic CAD history yet. The metadata-aware `diff` output stays limited to stored filesystem metadata comparison and does not attempt previews or geometry analysis.
 
 ## Development
 

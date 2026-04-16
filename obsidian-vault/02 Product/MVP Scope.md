@@ -12,7 +12,7 @@ Auto-commit and preview generation are intentionally deferred.
 
 `cadops config` is read-only in the current phase and focuses on clear inspection of `.cadops.yaml`.
 
-`cadops diff` adds a readable Git-backed working tree summary with CAD versus non-CAD grouping, while still deferring semantic CAD diffing, previews, and metadata comparison.
+`cadops diff` adds a readable Git-backed working tree summary with CAD versus non-CAD grouping plus stored metadata-aware enrichment from `.cadops/metadata/manifest.json`, while still deferring semantic CAD diffing, previews, and geometry-aware analysis.
 
 `cadops push` and `cadops pull` add lightweight collaboration guardrails around the underlying Git commands without attempting advanced merge or history analysis.
 
