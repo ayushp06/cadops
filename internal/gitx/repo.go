@@ -125,6 +125,25 @@ func RecentHistory(runner Runner, dir string, limit int) (string, error) {
 	return result.Stdout, nil
 }
 
+// FirstParent returns the first parent hash for a commit, or an empty string
+// when the commit has no parent.
+func FirstParent(runner Runner, dir, commit string) (string, error) {
+	result, err := runner.Run(dir, "git", "show", "-s", "--format=%P", commit)
+	if err != nil {
+		return "", err
+	}
+	return ParseFirstParent(result.Stdout), nil
+}
+
+// ReadFileAtRevision returns the contents of a tracked file from a revision.
+func ReadFileAtRevision(runner Runner, dir, revision, path string) ([]byte, error) {
+	result, err := runner.Run(dir, "git", "show", revision+":"+path)
+	if err != nil {
+		return nil, err
+	}
+	return []byte(result.Stdout), nil
+}
+
 // ListTrackedFiles returns the tracked repository files.
 func ListTrackedFiles(runner Runner, dir string) ([]string, error) {
 	result, err := runner.Run(dir, "git", "ls-files")
@@ -172,4 +191,13 @@ func MergeAttributes(existing string, extensions []string) string {
 // AttributeLine returns the canonical LFS entry for an extension.
 func AttributeLine(extension string) string {
 	return fmt.Sprintf("*%s filter=lfs diff=lfs merge=lfs -text", extension)
+}
+
+// ParseFirstParent extracts the first parent hash from `%P` output.
+func ParseFirstParent(out string) string {
+	fields := strings.Fields(strings.TrimSpace(out))
+	if len(fields) == 0 {
+		return ""
+	}
+	return fields[0]
 }

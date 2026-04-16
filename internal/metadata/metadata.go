@@ -179,6 +179,11 @@ func Load(root string) (Manifest, error) {
 		return Manifest{}, err
 	}
 
+	return Parse(data)
+}
+
+// Parse decodes manifest JSON data.
+func Parse(data []byte) (Manifest, error) {
 	var manifest Manifest
 	if err := json.Unmarshal(data, &manifest); err != nil {
 		return Manifest{}, err

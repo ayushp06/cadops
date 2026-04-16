@@ -91,3 +91,5 @@ To view recent CAD-aware commit history:
 go run ./cmd/cadops history
 go run ./cmd/cadops history --limit 5
 ```
+
+When snapshot or other commits include `.cadops/metadata/manifest.json`, `history` reads the manifest from each commit, compares it with the first parent manifest when available, and adds compact CAD file annotations such as type, stored size, checksum change, and size delta. If a commit does not carry usable metadata, the command degrades to the standard CAD file list with concise `metadata unavailable` output.

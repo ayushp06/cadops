@@ -50,3 +50,14 @@ func TestParseStatusPorcelainHandlesTrimmedLeadingSpace(t *testing.T) {
 		t.Fatalf("expected normalized path, got %q", entries[0].Path)
 	}
 }
+
+func TestParseFirstParent(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseFirstParent("abc123 def456"); got != "abc123" {
+		t.Fatalf("unexpected first parent %q", got)
+	}
+	if got := ParseFirstParent(""); got != "" {
+		t.Fatalf("expected empty parent, got %q", got)
+	}
+}

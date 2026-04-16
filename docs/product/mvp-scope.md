@@ -24,4 +24,4 @@ The product goal is safe Git and Git LFS setup for CAD-heavy repositories withou
 
 `cadops diff` is limited to Git-backed working tree summaries grouped into CAD and non-CAD changes, with optional enrichment from stored filesystem metadata in `.cadops/metadata/manifest.json`. Semantic CAD diffing, previews, and geometry-aware analysis remain out of scope.
 
-`cadops history` is limited to recent Git-backed commit output with CAD file filtering. Semantic change detection remains out of scope.
+`cadops history` is limited to recent Git-backed commit output with CAD file filtering plus optional enrichment from commit-scoped metadata manifests when they exist in Git history. Semantic change detection, previews, and geometry-aware analysis remain out of scope.

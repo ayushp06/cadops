@@ -16,4 +16,4 @@ Auto-commit and preview generation are intentionally deferred.
 
 `cadops push` and `cadops pull` add lightweight collaboration guardrails around the underlying Git commands without attempting advanced merge or history analysis.
 
-`cadops history` adds a readable recent commit view with CAD file filtering, but still defers semantic change detection.
+`cadops history` adds a readable recent commit view with CAD file filtering plus commit-scoped metadata-aware enrichment when manifests are present in Git history, but still defers semantic change detection, previews, and geometry-aware analysis.

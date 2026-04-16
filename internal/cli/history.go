@@ -3,13 +3,17 @@ package cli
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/cadops/cadops/internal/gitx"
 	"github.com/cadops/cadops/internal/history"
+	"github.com/cadops/cadops/internal/metadata"
 	"github.com/spf13/cobra"
 )
 
 const defaultHistoryLimit = 10
+const historyMetadataManifestPath = ".cadops/metadata/manifest.json"
 
 func newHistoryCmd() *cobra.Command {
 	limit := defaultHistoryLimit
@@ -45,11 +49,62 @@ func runHistory(dir string, limit int) error {
 		return nil
 	}
 
-	out, err := gitx.RecentHistory(runner, dir, limit)
+	repoRoot, err := gitx.RepoRoot(runner, dir)
 	if err != nil {
 		return err
 	}
 
-	fmt.Print(history.Format(history.ParseLog(out)))
+	out, err := gitx.RecentHistory(runner, repoRoot, limit)
+	if err != nil {
+		return err
+	}
+
+	entries := history.ParseLog(out)
+	loadManifest := newHistoryManifestLoader(runner, repoRoot)
+	resolveParent := func(commit string) (string, error) {
+		return gitx.FirstParent(runner, repoRoot, commit)
+	}
+
+	fmt.Print(history.FormatReport(history.BuildReport(entries, loadManifest, resolveParent)))
 	return nil
+}
+
+func newHistoryManifestLoader(runner gitx.Runner, repoRoot string) history.ManifestLoader {
+	cache := make(map[string]metadata.Manifest)
+	missing := make(map[string]bool)
+
+	return func(revision string) (metadata.Manifest, error) {
+		if manifest, ok := cache[revision]; ok {
+			return manifest, nil
+		}
+		if missing[revision] {
+			return metadata.Manifest{}, os.ErrNotExist
+		}
+
+		data, err := gitx.ReadFileAtRevision(runner, repoRoot, revision, filepath.ToSlash(historyMetadataManifestPath))
+		if err != nil {
+			if isMissingRevisionFileError(err) {
+				missing[revision] = true
+				return metadata.Manifest{}, os.ErrNotExist
+			}
+			return metadata.Manifest{}, err
+		}
+
+		manifest, err := metadata.Parse(data)
+		if err != nil {
+			return metadata.Manifest{}, err
+		}
+		cache[revision] = manifest
+		return manifest, nil
+	}
+}
+
+func isMissingRevisionFileError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "does not exist") ||
+		strings.Contains(msg, "exists on disk, but not in") ||
+		strings.Contains(msg, "path not in the working tree")
 }

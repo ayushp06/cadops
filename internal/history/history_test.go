@@ -1,6 +1,13 @@
 package history
 
-import "testing"
+import (
+	"errors"
+	"os"
+	"strings"
+	"testing"
+
+	"github.com/cadops/cadops/internal/metadata"
+)
 
 func TestParseLog(t *testing.T) {
 	t.Parallel()
@@ -69,5 +76,157 @@ func TestFormatEmpty(t *testing.T) {
 
 	if got := Format(nil); got != "No commits found\n" {
 		t.Fatalf("unexpected empty output %q", got)
+	}
+}
+
+func TestFormatReportEmpty(t *testing.T) {
+	t.Parallel()
+
+	if got := FormatReport(Report{}); got != "No commits found\n" {
+		t.Fatalf("unexpected empty report output %q", got)
+	}
+}
+
+func TestBuildReportEnrichesHistoryWithMetadata(t *testing.T) {
+	t.Parallel()
+
+	report := BuildReport(
+		[]Entry{
+			{
+				Hash:      "abcdef1234567890",
+				ShortHash: "abcdef1",
+				Date:      "2026-04-14",
+				Message:   "Updated bracket",
+				CADFiles:  []string{"bracket.sldprt"},
+			},
+		},
+		func(revision string) (metadata.Manifest, error) {
+			switch revision {
+			case "abcdef1234567890":
+				return metadata.Manifest{
+					Records: []metadata.Record{
+						{
+							Path:      "bracket.sldprt",
+							TypeName:  "SolidWorks Part",
+							SizeBytes: 140,
+							SHA256:    strings.Repeat("b", 64),
+						},
+					},
+				}, nil
+			case "parent1234567890":
+				return metadata.Manifest{
+					Records: []metadata.Record{
+						{
+							Path:      "bracket.sldprt",
+							TypeName:  "SolidWorks Part",
+							SizeBytes: 100,
+							SHA256:    strings.Repeat("a", 64),
+						},
+					},
+				}, nil
+			default:
+				return metadata.Manifest{}, os.ErrNotExist
+			}
+		},
+		func(commit string) (string, error) {
+			if commit == "abcdef1234567890" {
+				return "parent1234567890", nil
+			}
+			return "", nil
+		},
+	)
+
+	if len(report.Entries) != 1 {
+		t.Fatalf("expected 1 detailed entry, got %d", len(report.Entries))
+	}
+	file := report.Entries[0].CADFiles[0]
+	if !file.Metadata.MetadataAvailable {
+		t.Fatal("expected metadata to be available")
+	}
+	if !file.Metadata.ChecksumChanged {
+		t.Fatal("expected checksum change")
+	}
+	if !file.Metadata.HasSizeDelta || file.Metadata.SizeDeltaBytes != 40 {
+		t.Fatalf("unexpected size delta %+v", file.Metadata)
+	}
+
+	output := FormatReport(report)
+	if !strings.Contains(output, "SolidWorks Part; size 140 B; checksum changed; delta +40 B") {
+		t.Fatalf("expected enriched output, got:\n%s", output)
+	}
+}
+
+func TestBuildReportFallsBackWhenMetadataMissing(t *testing.T) {
+	t.Parallel()
+
+	report := BuildReport(
+		[]Entry{
+			{
+				Hash:      "abcdef1234567890",
+				ShortHash: "abcdef1",
+				Date:      "2026-04-14",
+				Message:   "Updated bracket",
+				CADFiles:  []string{"bracket.sldprt"},
+			},
+		},
+		func(revision string) (metadata.Manifest, error) {
+			return metadata.Manifest{}, os.ErrNotExist
+		},
+		func(commit string) (string, error) {
+			return "", nil
+		},
+	)
+
+	output := FormatReport(report)
+	if !strings.Contains(output, "bracket.sldprt [metadata unavailable]") {
+		t.Fatalf("expected fallback metadata annotation, got:\n%s", output)
+	}
+}
+
+func TestBuildReportWarnsAndContinuesOnMetadataLookupFailure(t *testing.T) {
+	t.Parallel()
+
+	report := BuildReport(
+		[]Entry{
+			{
+				Hash:      "abcdef1234567890",
+				ShortHash: "abcdef1",
+				Date:      "2026-04-14",
+				Message:   "Updated bracket",
+				CADFiles:  []string{"bracket.sldprt"},
+			},
+		},
+		func(revision string) (metadata.Manifest, error) {
+			return metadata.Manifest{}, errors.New("boom")
+		},
+		func(commit string) (string, error) {
+			return "", nil
+		},
+	)
+
+	output := FormatReport(report)
+	if !strings.Contains(output, "Warnings:\n  - metadata lookup failed for abcdef1\n") {
+		t.Fatalf("expected warning output, got:\n%s", output)
+	}
+	if !strings.Contains(output, "bracket.sldprt [metadata unavailable]") {
+		t.Fatalf("expected standard history output to continue, got:\n%s", output)
+	}
+}
+
+func TestFilterCADFilesDeduplicatesAndSkipsNonCAD(t *testing.T) {
+	t.Parallel()
+
+	files := filterCADFiles([]string{
+		" bracket.sldprt ",
+		"README.md",
+		"assembly.sldasm",
+		"bracket.sldprt",
+	})
+
+	if len(files) != 2 {
+		t.Fatalf("expected 2 CAD files, got %d", len(files))
+	}
+	if files[0] != "bracket.sldprt" || files[1] != "assembly.sldasm" {
+		t.Fatalf("unexpected CAD files %#v", files)
 	}
 }

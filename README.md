@@ -100,11 +100,11 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 `cadops pull` verifies Git LFS availability, warns on a dirty working tree and modified CAD files, and then delegates to `git pull`.
 
-`cadops history` shows a compact recent commit view with short hash, date, message, and changed CAD files for each commit. By default it shows recent commits and can be limited with `--limit`.
+`cadops history` shows a compact recent commit view with short hash, date, message, and changed CAD files for each commit. When `.cadops/metadata/manifest.json` is present in commit history, it also adds compact CAD metadata context per changed file such as CAD type, stored file size, and checksum-changed or size-delta indicators when both the commit and its first parent contain usable metadata manifests. When commit-scoped metadata is absent, it falls back cleanly to the standard history view with a concise `metadata unavailable` annotation.
 
 `cadops lock` and `cadops unlock` wrap `git lfs lock` and `git lfs unlock`, validate that the target file exists, and warn when locking is recommended for the file type but Git LFS is not configured correctly for that type.
 
-CadOps does not auto-commit from `watch`, does not implement semantic CAD diffing, does not implement geometry-aware metadata, and does not implement semantic CAD history yet. The metadata-aware `diff` output stays limited to stored filesystem metadata comparison and does not attempt previews or geometry analysis.
+CadOps does not auto-commit from `watch`, does not implement semantic CAD diffing, does not implement geometry-aware metadata, and does not implement semantic CAD history yet. The metadata-aware `diff` and `history` output stays limited to stored filesystem metadata comparison and does not attempt previews or geometry analysis.
 
 ## Development
 
