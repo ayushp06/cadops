@@ -59,7 +59,7 @@ func TestBuildReportEnrichesCADEntriesWithMetadataComparison(t *testing.T) {
 	}
 
 	output := FormatReport(report)
-	if !strings.Contains(output, "SolidWorks Part; lock yes; LFS yes; checksum changed; size +15 B") {
+	if !strings.Contains(output, "SolidWorks Part; locking recommended yes; LFS expected yes; checksum changed yes; size +15 B") {
 		t.Fatalf("expected enriched metadata details, got:\n%s", output)
 	}
 }
@@ -76,7 +76,7 @@ func TestBuildReportFallsBackToCurrentMetadataWithoutManifest(t *testing.T) {
 	})
 
 	output := FormatReport(report)
-	if !strings.Contains(output, "A exports/frame.step [STEP; lock no; LFS yes]") {
+	if !strings.Contains(output, "A exports/frame.step [STEP; locking recommended no; LFS expected yes]") {
 		t.Fatalf("expected current metadata context without manifest, got:\n%s", output)
 	}
 	if !strings.Contains(output, "D notes.txt") {
@@ -99,8 +99,45 @@ func TestBuildReportWarnsAndContinuesWhenCurrentMetadataLookupFails(t *testing.T
 	if !strings.Contains(output, "M missing.sldprt") {
 		t.Fatalf("expected diff line to remain visible, got:\n%s", output)
 	}
+	if !strings.Contains(output, "M missing.sldprt [metadata unavailable]") {
+		t.Fatalf("expected explicit metadata fallback, got:\n%s", output)
+	}
 	if !strings.Contains(output, "Warnings:\n  - metadata unavailable for missing.sldprt\n") {
 		t.Fatalf("expected concise metadata warning, got:\n%s", output)
+	}
+}
+
+func TestFormatReportShowsChecksumUnchangedIndicator(t *testing.T) {
+	t.Parallel()
+
+	report := Report{
+		CAD: []DetailedEntry{
+			{
+				Entry: Entry{Kind: KindModified, Path: "stable.step", IsCAD: true},
+				Metadata: MetadataDetails{
+					HasCurrent:  true,
+					HasPrevious: true,
+					Current: metadata.Record{
+						TypeName:       "STEP",
+						SizeBytes:      10,
+						SHA256:         strings.Repeat("a", 64),
+						GitLFSExpected: true,
+					},
+					Previous: metadata.Record{
+						TypeName:       "STEP",
+						SizeBytes:      10,
+						SHA256:         strings.Repeat("a", 64),
+						GitLFSExpected: true,
+					},
+					Comparison: Comparison{HasSizeDelta: true},
+				},
+			},
+		},
+	}
+
+	output := FormatReport(report)
+	if !strings.Contains(output, "checksum changed no") {
+		t.Fatalf("expected checksum unchanged indicator, got:\n%s", output)
 	}
 }
 

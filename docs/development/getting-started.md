@@ -55,7 +55,7 @@ To summarize current Git-backed repository changes:
 go run ./cmd/cadops diff
 ```
 
-When `.cadops/metadata/manifest.json` is available, `diff` uses that manifest as a stored baseline for changed CAD files and enriches the output with compact metadata context such as CAD type, lock recommendation, Git LFS expectation, checksum change, and file size delta when a clean previous-versus-current comparison is possible.
+When `.cadops/metadata/manifest.json` is available, `diff` uses that manifest as a stored baseline for changed CAD files and enriches the output with compact metadata context such as CAD type, locking recommendation, Git LFS expectation, explicit checksum changed yes/no, and file size delta when a clean previous-versus-current comparison is possible. Missing metadata is reported as unavailable without blocking the standard diff summary.
 
 To audit CAD assets and repository configuration risk:
 

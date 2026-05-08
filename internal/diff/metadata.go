@@ -190,17 +190,17 @@ func writeCADGroup(builder *strings.Builder, entries []DetailedEntry) {
 func formatMetadataDetails(details MetadataDetails) string {
 	record, ok := preferredRecord(details)
 	if !ok {
-		return ""
+		return "metadata unavailable"
 	}
 
 	parts := []string{
 		record.TypeName,
-		"lock " + yesNo(record.LockingRecommended),
-		"LFS " + yesNo(record.GitLFSExpected),
+		"locking recommended " + yesNo(record.LockingRecommended),
+		"LFS expected " + yesNo(record.GitLFSExpected),
 	}
 
-	if details.HasPrevious && details.HasCurrent && details.Comparison.ChecksumChanged {
-		parts = append(parts, "checksum changed")
+	if details.HasPrevious && details.HasCurrent {
+		parts = append(parts, "checksum changed "+yesNo(details.Comparison.ChecksumChanged))
 	}
 	if details.HasPrevious && details.HasCurrent && details.Comparison.HasSizeDelta && details.Comparison.SizeDeltaBytes != 0 {
 		parts = append(parts, "size "+formatSizeDelta(details.Comparison.SizeDeltaBytes))
