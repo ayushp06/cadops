@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/cadops/cadops/internal/metadata"
+	"github.com/cadops/cadops/internal/preview"
 )
 
 func TestBuildReport(t *testing.T) {
@@ -152,6 +153,30 @@ func TestFindLFSWarnings(t *testing.T) {
 	got := FindLFSWarnings(files, gitAttributes(".sldprt", ".step"))
 	if len(got) != 0 {
 		t.Fatalf("expected no warnings, got %#v", got)
+	}
+}
+
+func TestBuildPreviewCoverage(t *testing.T) {
+	t.Parallel()
+
+	files := []File{
+		BuildFile("parts/gearbox.sldprt", 1),
+		BuildFile("exports/frame.step", 1),
+		BuildFile("parts/missing.sldprt", 1),
+	}
+	manifest := preview.Manifest{
+		Records: []preview.Record{
+			{SourcePath: "parts/gearbox.sldprt", Status: preview.StatusGenerated},
+			{SourcePath: "exports/frame.step", Status: preview.StatusUnavailable},
+		},
+	}
+
+	coverage := BuildPreviewCoverage(files, manifest, nil)
+	if !coverage.UsedManifest {
+		t.Fatal("expected manifest coverage")
+	}
+	if coverage.Generated != 1 || coverage.Unavailable != 1 || coverage.Missing != 1 {
+		t.Fatalf("unexpected preview coverage %+v", coverage)
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/cadops/cadops/internal/config"
 	"github.com/cadops/cadops/internal/gitx"
+	"github.com/cadops/cadops/internal/preview"
 	"github.com/cadops/cadops/internal/scan"
 	"github.com/spf13/cobra"
 )
@@ -52,7 +53,16 @@ func runScan(dir string) error {
 		return err
 	}
 
-	fmt.Print(formatScanReport(scan.BuildReport(files, string(attributesData), usedMetadata)))
+	report := scan.BuildReport(files, string(attributesData), usedMetadata)
+	if previewManifest, err := preview.Load(repoRoot); err == nil {
+		report.PreviewCoverage = scan.BuildPreviewCoverage(files, previewManifest, func(record preview.Record) preview.Status {
+			return preview.EffectiveStatus(repoRoot, record)
+		})
+	} else {
+		report.PreviewCoverage.Missing = len(files)
+	}
+
+	fmt.Print(formatScanReport(report))
 	return nil
 }
 
@@ -64,6 +74,8 @@ func formatScanReport(report scan.Report) string {
 	builder.WriteString(fmt.Sprintf("- Locking recommended: %d\n", len(report.LockingRecommended)))
 	builder.WriteString(fmt.Sprintf("- Git LFS expected: %d\n", len(report.GitLFSExpected)))
 	builder.WriteString(fmt.Sprintf("- LFS warnings: %d\n", len(report.LFSWarnings)))
+	builder.WriteString(fmt.Sprintf("- Preview generated: %d\n", report.PreviewCoverage.Generated))
+	builder.WriteString(fmt.Sprintf("- Preview stale/missing: %d\n", report.PreviewCoverage.Stale+report.PreviewCoverage.Missing))
 	if report.UsedMetadata {
 		builder.WriteString("- Data source: metadata manifest\n")
 	} else {
@@ -118,6 +130,17 @@ func formatScanReport(report scan.Report) string {
 		for _, warning := range report.LFSWarnings {
 			builder.WriteString(fmt.Sprintf("- %s missing .gitattributes LFS rule for %s\n", warning.Path, warning.Extension))
 		}
+	}
+
+	builder.WriteString("Preview Coverage\n")
+	if report.PreviewCoverage.UsedManifest {
+		builder.WriteString(fmt.Sprintf("- generated: %d\n", report.PreviewCoverage.Generated))
+		builder.WriteString(fmt.Sprintf("- unavailable: %d\n", report.PreviewCoverage.Unavailable))
+		builder.WriteString(fmt.Sprintf("- unsupported: %d\n", report.PreviewCoverage.Unsupported))
+		builder.WriteString(fmt.Sprintf("- stale: %d\n", report.PreviewCoverage.Stale))
+		builder.WriteString(fmt.Sprintf("- missing: %d\n", report.PreviewCoverage.Missing))
+	} else {
+		builder.WriteString(fmt.Sprintf("- preview manifest missing for %d CAD files\n", report.PreviewCoverage.Missing))
 	}
 
 	builder.WriteString("Largest CAD Files\n")

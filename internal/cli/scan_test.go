@@ -25,6 +25,11 @@ func TestFormatScanReport(t *testing.T) {
 		LockingRecommended: []string{"parts/gearbox.sldprt"},
 		GitLFSExpected:     []string{"exports/frame.step", "parts/gearbox.sldprt"},
 		LFSWarnings:        []scan.LFSWarning{{Path: "exports/frame.step", Extension: ".step"}},
+		PreviewCoverage: scan.PreviewCoverage{
+			UsedManifest: true,
+			Generated:    1,
+			Unavailable:  1,
+		},
 		LargestFiles: []scan.SizedFile{
 			{Path: "parts/gearbox.sldprt", SizeBytes: 2048},
 			{Path: "exports/frame.step", SizeBytes: 1024},
@@ -42,10 +47,14 @@ func TestFormatScanReport(t *testing.T) {
 		"Repo Summary\n",
 		"- Total CAD files: 2\n",
 		"- Data source: metadata manifest\n",
+		"- Preview generated: 1\n",
+		"- Preview stale/missing: 0\n",
 		"Counts By Type\n",
 		"Locking Recommendations\n",
 		"Git LFS Expected\n",
 		"LFS Status\n",
+		"Preview Coverage\n",
+		"- unavailable: 1\n",
 		"Largest CAD Files\n",
 		"- parts/gearbox.sldprt | 2.0 KB\n",
 	} {

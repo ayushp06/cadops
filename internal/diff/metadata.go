@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/cadops/cadops/internal/metadata"
+	"github.com/cadops/cadops/internal/preview"
 )
 
 // Report is a metadata-aware diff summary for terminal rendering.
@@ -20,6 +21,7 @@ type Report struct {
 type DetailedEntry struct {
 	Entry    Entry
 	Metadata MetadataDetails
+	Preview  PreviewDetails
 }
 
 // MetadataDetails stores available metadata context for a changed CAD file.
@@ -39,9 +41,27 @@ type Comparison struct {
 	HasSizeDelta    bool
 }
 
+// PreviewDetails stores optional preview state for a changed CAD file.
+type PreviewDetails struct {
+	Status      preview.Status
+	HasRecord   bool
+	HasManifest bool
+}
+
+// PreviewLoader returns a preview manifest for the current repository.
+type PreviewLoader func() (preview.Manifest, error)
+
 // BuildReport groups changed entries and enriches CAD files with metadata when
 // the current manifest and filesystem provide enough information.
 func BuildReport(root string, entries []Entry) Report {
+	return BuildReportWithPreviews(root, entries, func() (preview.Manifest, error) {
+		return preview.Load(root)
+	})
+}
+
+// BuildReportWithPreviews groups changed entries and enriches CAD files with
+// metadata plus preview status when preview records are available.
+func BuildReportWithPreviews(root string, entries []Entry, loadPreview PreviewLoader) Report {
 	summary := Summarize(entries)
 	report := Report{
 		CAD:   make([]DetailedEntry, 0, len(summary.CAD)),
@@ -51,8 +71,10 @@ func BuildReport(root string, entries []Entry) Report {
 	manifest, hasManifest, manifestWarnings := loadManifest(root)
 	report.Warnings = append(report.Warnings, manifestWarnings...)
 
+	previewManifest, hasPreviewManifest := loadPreviewManifest(loadPreview)
 	for _, entry := range summary.CAD {
 		detailed, warnings := enrichEntry(root, manifest, hasManifest, entry)
+		detailed.Preview = enrichPreview(root, previewManifest, hasPreviewManifest, entry)
 		report.CAD = append(report.CAD, detailed)
 		report.Warnings = append(report.Warnings, warnings...)
 	}
@@ -109,6 +131,36 @@ func loadManifest(root string) (metadata.Manifest, bool, []string) {
 		return metadata.Manifest{}, false, nil
 	}
 	return metadata.Manifest{}, false, []string{"metadata store unavailable; showing standard diff context only"}
+}
+
+func loadPreviewManifest(loadPreview PreviewLoader) (preview.Manifest, bool) {
+	if loadPreview == nil {
+		return preview.Manifest{}, false
+	}
+	manifest, err := loadPreview()
+	if err != nil {
+		return preview.Manifest{}, false
+	}
+	return manifest, true
+}
+
+func enrichPreview(root string, manifest preview.Manifest, hasManifest bool, entry Entry) PreviewDetails {
+	details := PreviewDetails{HasManifest: hasManifest}
+	if !hasManifest {
+		return details
+	}
+
+	record, ok := preview.Lookup(manifest, entry.Path)
+	if !ok && entry.OldPath != "" && entry.OldPath != entry.Path {
+		record, ok = preview.Lookup(manifest, entry.OldPath)
+	}
+	if !ok {
+		return details
+	}
+
+	details.HasRecord = true
+	details.Status = preview.EffectiveStatus(root, record)
+	return details
 }
 
 func lookupPreviousRecord(manifest metadata.Manifest, entry Entry) (metadata.Record, string, bool) {
@@ -183,8 +235,20 @@ func writeCADGroup(builder *strings.Builder, entries []DetailedEntry) {
 			builder.WriteString(details)
 			builder.WriteString("]")
 		}
+		if previewDetails := formatPreviewDetails(entry.Preview); previewDetails != "" {
+			builder.WriteString(" [")
+			builder.WriteString(previewDetails)
+			builder.WriteString("]")
+		}
 		builder.WriteString("\n")
 	}
+}
+
+func formatPreviewDetails(details PreviewDetails) string {
+	if !details.HasManifest || !details.HasRecord {
+		return "preview missing"
+	}
+	return "preview " + string(details.Status)
 }
 
 func formatMetadataDetails(details MetadataDetails) string {

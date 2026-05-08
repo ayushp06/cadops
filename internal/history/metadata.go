@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/cadops/cadops/internal/metadata"
+	"github.com/cadops/cadops/internal/preview"
 )
 
 // ManifestLoader loads a metadata manifest for a revision.
@@ -13,6 +14,9 @@ type ManifestLoader func(revision string) (metadata.Manifest, error)
 
 // ParentResolver returns the first parent hash for a commit.
 type ParentResolver func(commit string) (string, error)
+
+// PreviewManifestLoader loads a preview manifest for a revision.
+type PreviewManifestLoader func(revision string) (preview.Manifest, error)
 
 // Report is a metadata-aware history view.
 type Report struct {
@@ -30,6 +34,7 @@ type DetailedEntry struct {
 type CADFileDetail struct {
 	Path     string
 	Metadata FileMetadata
+	Preview  FilePreview
 }
 
 // FileMetadata captures history-safe metadata context for a CAD file.
@@ -44,9 +49,21 @@ type FileMetadata struct {
 	HasSizeDelta      bool
 }
 
+// FilePreview captures commit-scoped preview availability for a CAD file.
+type FilePreview struct {
+	Status    preview.Status
+	HasRecord bool
+}
+
 // BuildReport enriches parsed history entries with commit-scoped metadata when
 // manifests are available in Git history.
 func BuildReport(entries []Entry, loadManifest ManifestLoader, resolveParent ParentResolver) Report {
+	return BuildReportWithPreviews(entries, loadManifest, resolveParent, nil)
+}
+
+// BuildReportWithPreviews enriches parsed history entries with metadata and
+// commit-scoped preview status when preview manifests are present.
+func BuildReportWithPreviews(entries []Entry, loadManifest ManifestLoader, resolveParent ParentResolver, loadPreview PreviewManifestLoader) Report {
 	report := Report{
 		Entries:  make([]DetailedEntry, 0, len(entries)),
 		Warnings: make([]string, 0),
@@ -81,6 +98,11 @@ func BuildReport(entries []Entry, loadManifest ManifestLoader, resolveParent Par
 			}
 		}
 
+		previewManifest, hasPreviewManifest, previewWarning := safeLoadPreviewManifest(loadPreview, entry.Hash)
+		if previewWarning != "" {
+			report.Warnings = append(report.Warnings, previewWarning)
+		}
+
 		for _, path := range entry.CADFiles {
 			file := CADFileDetail{Path: path}
 
@@ -108,6 +130,12 @@ func BuildReport(entries []Entry, loadManifest ManifestLoader, resolveParent Par
 				file.Metadata.Current = file.Metadata.Previous
 				file.Metadata.HasCurrent = true
 				file.Metadata.MetadataAvailable = true
+			}
+			if hasPreviewManifest {
+				if record, ok := preview.Lookup(previewManifest, path); ok {
+					file.Preview.HasRecord = true
+					file.Preview.Status = record.Status
+				}
 			}
 
 			detailed.CADFiles = append(detailed.CADFiles, file)
@@ -144,6 +172,11 @@ func FormatReport(report Report) string {
 				builder.WriteString(details)
 				builder.WriteString("]")
 			}
+			if details := formatFilePreview(file.Preview); details != "" {
+				builder.WriteString(" [")
+				builder.WriteString(details)
+				builder.WriteString("]")
+			}
 			builder.WriteString("\n")
 		}
 	}
@@ -156,6 +189,20 @@ func FormatReport(report Report) string {
 		}
 	}
 	return builder.String()
+}
+
+func safeLoadPreviewManifest(loadPreview PreviewManifestLoader, revision string) (preview.Manifest, bool, string) {
+	if loadPreview == nil || revision == "" {
+		return preview.Manifest{}, false, ""
+	}
+	manifest, err := loadPreview(revision)
+	if err == nil {
+		return manifest, true, ""
+	}
+	if os.IsNotExist(err) {
+		return preview.Manifest{}, false, ""
+	}
+	return preview.Manifest{}, false, fmt.Sprintf("preview lookup failed for %s", shortHash(revision))
 }
 
 func safeResolveParent(resolveParent ParentResolver, commit string) (string, string) {
@@ -199,6 +246,13 @@ func formatFileMetadata(details FileMetadata) string {
 		parts = append(parts, "delta "+formatSizeDelta(details.SizeDeltaBytes))
 	}
 	return strings.Join(parts, "; ")
+}
+
+func formatFilePreview(details FilePreview) string {
+	if !details.HasRecord {
+		return "preview unavailable"
+	}
+	return "preview " + string(details.Status)
 }
 
 func formatSize(sizeBytes int64) string {

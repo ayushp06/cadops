@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/cadops/cadops/internal/metadata"
+	"github.com/cadops/cadops/internal/preview"
 )
 
 func TestParseLog(t *testing.T) {
@@ -210,6 +211,39 @@ func TestBuildReportWarnsAndContinuesOnMetadataLookupFailure(t *testing.T) {
 	}
 	if !strings.Contains(output, "bracket.sldprt [metadata unavailable]") {
 		t.Fatalf("expected standard history output to continue, got:\n%s", output)
+	}
+}
+
+func TestBuildReportShowsPreviewAvailability(t *testing.T) {
+	t.Parallel()
+
+	report := BuildReportWithPreviews(
+		[]Entry{
+			{
+				Hash:      "abcdef1234567890",
+				ShortHash: "abcdef1",
+				Date:      "2026-04-14",
+				Message:   "Updated bracket",
+				CADFiles:  []string{"bracket.sldprt"},
+			},
+		},
+		func(revision string) (metadata.Manifest, error) {
+			return metadata.Manifest{}, os.ErrNotExist
+		},
+		nil,
+		func(revision string) (preview.Manifest, error) {
+			return preview.Manifest{
+				Records: []preview.Record{{
+					SourcePath: "bracket.sldprt",
+					Status:     preview.StatusGenerated,
+				}},
+			}, nil
+		},
+	)
+
+	output := FormatReport(report)
+	if !strings.Contains(output, "bracket.sldprt [metadata unavailable] [preview generated]") {
+		t.Fatalf("expected preview availability, got:\n%s", output)
 	}
 }
 

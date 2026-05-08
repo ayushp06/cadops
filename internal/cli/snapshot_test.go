@@ -11,6 +11,7 @@ import (
 	"github.com/cadops/cadops/internal/config"
 	"github.com/cadops/cadops/internal/gitx"
 	"github.com/cadops/cadops/internal/metadata"
+	"github.com/cadops/cadops/internal/preview"
 	"github.com/cadops/cadops/internal/snapshot"
 )
 
@@ -36,6 +37,9 @@ func TestRunSnapshotCreatesAndCommitsMetadata(t *testing.T) {
 	if !strings.Contains(output, "Metadata updated for 1 CAD files\n") {
 		t.Fatalf("expected metadata update message, got:\n%s", output)
 	}
+	if !strings.Contains(output, "Preview records updated for 1 CAD files\n") {
+		t.Fatalf("expected preview update message, got:\n%s", output)
+	}
 
 	manifest, err := metadata.Load(root)
 	if err != nil {
@@ -44,16 +48,54 @@ func TestRunSnapshotCreatesAndCommitsMetadata(t *testing.T) {
 	if len(manifest.Records) != 1 {
 		t.Fatalf("expected 1 metadata record, got %d", len(manifest.Records))
 	}
+	previewManifest, err := preview.Load(root)
+	if err != nil {
+		t.Fatalf("load preview manifest: %v", err)
+	}
+	if len(previewManifest.Records) != 1 {
+		t.Fatalf("expected 1 preview record, got %d", len(previewManifest.Records))
+	}
 
 	runner := gitx.Runner{}
 	result, err := runner.Run(root, "git", "show", "--pretty=format:", "--name-only", "HEAD")
 	if err != nil {
 		t.Fatalf("git show head: %v", err)
 	}
-	for _, path := range []string{".cadops/metadata/manifest.json", "parts/gearbox.sldprt"} {
+	for _, path := range []string{".cadops/metadata/manifest.json", ".cadops/previews/manifest.json", "parts/gearbox.sldprt"} {
 		if !strings.Contains(result.Stdout, path) {
 			t.Fatalf("expected %s in HEAD files:\n%s", path, result.Stdout)
 		}
+	}
+}
+
+func TestRunSnapshotPreviewFailureWarnsButStillCommits(t *testing.T) {
+	root := t.TempDir()
+	setupSnapshotRepo(t, root)
+
+	partPath := filepath.Join(root, "parts", "gearbox.sldprt")
+	writeFile(t, partPath, "version-1")
+	commitAll(t, root, "initial import")
+	writeFile(t, partPath, "version-2")
+
+	output := captureStdout(t, func() {
+		err := runSnapshotWithUpdaters(
+			root,
+			time.Date(2026, time.April, 15, 13, 0, 0, 0, time.UTC),
+			snapshot.RefreshMetadata,
+			func(root string, extensions []string, now time.Time) (snapshot.PreviewUpdate, error) {
+				return snapshot.PreviewUpdate{}, errors.New("simulated preview failure")
+			},
+		)
+		if err != nil {
+			t.Fatalf("run snapshot with preview warning path: %v", err)
+		}
+	})
+
+	if !strings.Contains(output, "Warning: preview update failed: simulated preview failure\n") {
+		t.Fatalf("expected preview warning, got:\n%s", output)
+	}
+	if !strings.Contains(output, "Created snapshot commit: snapshot: 2026-04-15 13:00\n") {
+		t.Fatalf("expected snapshot commit output, got:\n%s", output)
 	}
 }
 

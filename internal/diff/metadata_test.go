@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/cadops/cadops/internal/metadata"
+	"github.com/cadops/cadops/internal/preview"
 )
 
 func TestBuildReportEnrichesCADEntriesWithMetadataComparison(t *testing.T) {
@@ -138,6 +139,36 @@ func TestFormatReportShowsChecksumUnchangedIndicator(t *testing.T) {
 	output := FormatReport(report)
 	if !strings.Contains(output, "checksum changed no") {
 		t.Fatalf("expected checksum unchanged indicator, got:\n%s", output)
+	}
+}
+
+func TestBuildReportShowsPreviewStatus(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	mustWriteFile(t, filepath.Join(root, "part.sldprt"), "solid")
+	hash, err := metadata.HashFile(filepath.Join(root, "part.sldprt"))
+	if err != nil {
+		t.Fatalf("hash source: %v", err)
+	}
+
+	report := BuildReportWithPreviews(
+		root,
+		[]Entry{{Kind: KindModified, Path: "part.sldprt", IsCAD: true}},
+		func() (preview.Manifest, error) {
+			return preview.Manifest{
+				Records: []preview.Record{{
+					SourcePath: "part.sldprt",
+					SourceHash: hash,
+					Status:     preview.StatusUnavailable,
+				}},
+			}, nil
+		},
+	)
+
+	output := FormatReport(report)
+	if !strings.Contains(output, "[preview unavailable]") {
+		t.Fatalf("expected preview status, got:\n%s", output)
 	}
 }
 

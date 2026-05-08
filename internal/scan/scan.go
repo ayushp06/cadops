@@ -10,6 +10,7 @@ import (
 	"github.com/cadops/cadops/internal/cad"
 	"github.com/cadops/cadops/internal/gitx"
 	"github.com/cadops/cadops/internal/metadata"
+	"github.com/cadops/cadops/internal/preview"
 	"github.com/cadops/cadops/internal/watch"
 )
 
@@ -64,8 +65,19 @@ type Report struct {
 	LargestFiles         []SizedFile
 	TopDirectories       []DirectoryCount
 	UsedMetadata         bool
+	PreviewCoverage      PreviewCoverage
 	DisplayedLocking     []string
 	DisplayedLFSExpected []string
+}
+
+// PreviewCoverage summarizes preview record availability for scanned CAD files.
+type PreviewCoverage struct {
+	UsedManifest bool
+	Generated    int
+	Unavailable  int
+	Unsupported  int
+	Stale        int
+	Missing      int
 }
 
 // LoadFiles loads scan input either from the metadata manifest when available
@@ -169,6 +181,36 @@ func BuildReport(files []File, attributes string, usedMetadata bool) Report {
 	report.DisplayedLocking = LimitPaths(report.LockingRecommended, pathListLimit)
 	report.DisplayedLFSExpected = LimitPaths(report.GitLFSExpected, pathListLimit)
 	return report
+}
+
+// BuildPreviewCoverage compares scanned files with stored preview records.
+func BuildPreviewCoverage(files []File, manifest preview.Manifest, statusFor func(preview.Record) preview.Status) PreviewCoverage {
+	coverage := PreviewCoverage{UsedManifest: true}
+	for _, file := range files {
+		record, ok := preview.Lookup(manifest, file.Path)
+		if !ok {
+			coverage.Missing++
+			continue
+		}
+
+		status := record.Status
+		if statusFor != nil {
+			status = statusFor(record)
+		}
+		switch status {
+		case preview.StatusGenerated:
+			coverage.Generated++
+		case preview.StatusUnavailable:
+			coverage.Unavailable++
+		case preview.StatusUnsupported:
+			coverage.Unsupported++
+		case preview.StatusStale:
+			coverage.Stale++
+		default:
+			coverage.Unavailable++
+		}
+	}
+	return coverage
 }
 
 // CountByType returns stable type counts.

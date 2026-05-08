@@ -13,6 +13,7 @@ import (
 )
 
 type snapshotMetadataUpdater func(root string, extensions []string) (snapshot.MetadataUpdate, error)
+type snapshotPreviewUpdater func(root string, extensions []string, now time.Time) (snapshot.PreviewUpdate, error)
 
 func newSnapshotCmd() *cobra.Command {
 	return &cobra.Command{
@@ -29,10 +30,14 @@ func newSnapshotCmd() *cobra.Command {
 }
 
 func runSnapshot(dir string, now time.Time) error {
-	return runSnapshotWithMetadataUpdater(dir, now, snapshot.RefreshMetadata)
+	return runSnapshotWithUpdaters(dir, now, snapshot.RefreshMetadata, snapshot.RefreshPreviews)
 }
 
 func runSnapshotWithMetadataUpdater(dir string, now time.Time, updateMetadata snapshotMetadataUpdater) error {
+	return runSnapshotWithUpdaters(dir, now, updateMetadata, nil)
+}
+
+func runSnapshotWithUpdaters(dir string, now time.Time, updateMetadata snapshotMetadataUpdater, updatePreviews snapshotPreviewUpdater) error {
 	runner := gitx.Runner{}
 	if !gitx.IsRepo(runner, dir) {
 		return fmt.Errorf("not a git repository")
@@ -66,6 +71,7 @@ func runSnapshotWithMetadataUpdater(dir string, now time.Time, updateMetadata sn
 
 	commitPaths := append([]string{}, plan.Paths...)
 	metadataMessage := ""
+	previewMessage := ""
 	if updateMetadata != nil {
 		update, err := updateMetadata(repoRoot, cfg.TrackedExtensions)
 		if err != nil {
@@ -79,6 +85,19 @@ func runSnapshotWithMetadataUpdater(dir string, now time.Time, updateMetadata sn
 			}
 		}
 	}
+	if updatePreviews != nil {
+		update, err := updatePreviews(repoRoot, cfg.TrackedExtensions, now)
+		if err != nil {
+			fmt.Printf("Warning: preview update failed: %v\n", err)
+		} else {
+			if err := gitx.StagePath(runner, repoRoot, update.Path); err != nil {
+				fmt.Printf("Warning: preview update failed: stage %s: %v\n", update.Path, err)
+			} else {
+				commitPaths = append(commitPaths, update.Path)
+				previewMessage = fmt.Sprintf("Preview records updated for %d CAD files\n", update.RecordCount)
+			}
+		}
+	}
 
 	if err := gitx.CommitPaths(runner, repoRoot, plan.Message, commitPaths); err != nil {
 		return err
@@ -88,6 +107,9 @@ func runSnapshotWithMetadataUpdater(dir string, now time.Time, updateMetadata sn
 	fmt.Printf("CAD files: %d\n", len(plan.Paths))
 	if metadataMessage != "" {
 		fmt.Print(metadataMessage)
+	}
+	if previewMessage != "" {
+		fmt.Print(previewMessage)
 	}
 	return nil
 }
