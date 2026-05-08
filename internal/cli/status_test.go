@@ -22,3 +22,15 @@ func TestSummarizeStatus(t *testing.T) {
 		t.Fatalf("expected 1 non-CAD file, got %d", len(summary.NonCADFiles))
 	}
 }
+
+func TestStatusEntryPathsSorts(t *testing.T) {
+	t.Parallel()
+
+	paths := statusEntryPaths([]gitx.StatusEntry{
+		{Path: "b.step"},
+		{Path: "a.step"},
+	})
+	if len(paths) != 2 || paths[0] != "a.step" || paths[1] != "b.step" {
+		t.Fatalf("unexpected paths %#v", paths)
+	}
+}

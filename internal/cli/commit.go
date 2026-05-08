@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	commitcheck "github.com/cadops/cadops/internal/commit"
 	"github.com/cadops/cadops/internal/config"
 	"github.com/cadops/cadops/internal/gitx"
+	"github.com/cadops/cadops/internal/metadata"
+	"github.com/cadops/cadops/internal/preview"
 	"github.com/spf13/cobra"
 )
 
@@ -71,6 +74,7 @@ func runCommit(dir, message string) error {
 
 	report := commitcheck.Assess(cfg, entries, string(attributesData), lockedPaths)
 	printWarnings(report.Warnings)
+	printCommitMetadataPreviewWarnings(repoRoot, entries)
 	if !report.CanCommit {
 		if report.HasUnstagedChanges {
 			return fmt.Errorf("nothing staged to commit")
@@ -84,4 +88,47 @@ func runCommit(dir, message string) error {
 
 	fmt.Println("Commit completed")
 	return nil
+}
+
+func printCommitMetadataPreviewWarnings(root string, entries []gitx.StatusEntry) {
+	cadPaths := statusEntryPaths(summarizeStatus(entries).CADFiles)
+	if len(cadPaths) == 0 {
+		return
+	}
+
+	if coverage, err := metadata.CheckCoverage(root, cadPaths); err == nil {
+		if len(coverage.Missing) > 0 {
+			fmt.Printf("Warning: Metadata: missing records for %s\n", strings.Join(coverage.Missing, ", "))
+		}
+		if len(coverage.Stale) > 0 {
+			fmt.Printf("Warning: Metadata: stale records for %s\n", strings.Join(coverage.Stale, ", "))
+		}
+	}
+
+	manifest, err := preview.Load(root)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Printf("Warning: Previews: missing records for %s\n", strings.Join(cadPaths, ", "))
+		}
+		return
+	}
+
+	missing := make([]string, 0)
+	stale := make([]string, 0)
+	for _, path := range cadPaths {
+		record, ok := preview.Lookup(manifest, path)
+		if !ok {
+			missing = append(missing, path)
+			continue
+		}
+		if preview.EffectiveStatus(root, record) == preview.StatusStale {
+			stale = append(stale, path)
+		}
+	}
+	if len(missing) > 0 {
+		fmt.Printf("Warning: Previews: missing records for %s\n", strings.Join(missing, ", "))
+	}
+	if len(stale) > 0 {
+		fmt.Printf("Warning: Previews: stale records for %s\n", strings.Join(stale, ", "))
+	}
 }

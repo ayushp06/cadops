@@ -41,6 +41,13 @@ type Manifest struct {
 	Records     []Record `json:"records"`
 }
 
+// Coverage summarizes whether stored metadata exists and matches current files.
+type Coverage struct {
+	HasManifest bool
+	Missing     []string
+	Stale       []string
+}
+
 // ManifestPath returns the repository-local metadata manifest path.
 func ManifestPath(root string) string {
 	return filepath.Join(root, dirName, manifestFileName)
@@ -200,6 +207,53 @@ func Lookup(manifest Manifest, relPath string) (Record, bool) {
 		}
 	}
 	return Record{}, false
+}
+
+// CheckCoverage compares stored metadata records with current source files.
+func CheckCoverage(root string, paths []string) (Coverage, error) {
+	manifest, err := Load(root)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return Coverage{Missing: uniqueSortedPaths(paths)}, nil
+		}
+		return Coverage{}, err
+	}
+
+	coverage := Coverage{HasManifest: true}
+	for _, path := range uniqueSortedPaths(paths) {
+		record, ok := Lookup(manifest, path)
+		if !ok {
+			coverage.Missing = append(coverage.Missing, path)
+			continue
+		}
+		hash, err := HashFile(filepath.Join(root, filepath.FromSlash(path)))
+		if err != nil {
+			if os.IsNotExist(err) {
+				coverage.Stale = append(coverage.Stale, path)
+				continue
+			}
+			return Coverage{}, err
+		}
+		if record.SHA256 != "" && hash != record.SHA256 {
+			coverage.Stale = append(coverage.Stale, path)
+		}
+	}
+	return coverage, nil
+}
+
+func uniqueSortedPaths(paths []string) []string {
+	seen := make(map[string]bool, len(paths))
+	out := make([]string, 0, len(paths))
+	for _, path := range paths {
+		normalized := filepath.ToSlash(filepath.Clean(path))
+		if normalized == "." || normalized == "" || seen[normalized] {
+			continue
+		}
+		seen[normalized] = true
+		out = append(out, normalized)
+	}
+	sort.Strings(out)
+	return out
 }
 
 func unknownTypeName(extension string) string {

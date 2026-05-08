@@ -10,6 +10,8 @@ import (
 	"github.com/cadops/cadops/internal/cad"
 	"github.com/cadops/cadops/internal/config"
 	"github.com/cadops/cadops/internal/gitx"
+	"github.com/cadops/cadops/internal/metadata"
+	"github.com/cadops/cadops/internal/preview"
 )
 
 // CheckLevel indicates the outcome severity.
@@ -61,20 +63,24 @@ func Run(dir string, runner gitx.Runner) Report {
 		}
 	}
 
+	repoRoot := dir
 	if gitx.IsRepo(runner, dir) {
+		if root, err := gitx.RepoRoot(runner, dir); err == nil {
+			repoRoot = root
+		}
 		results = append(results, CheckResult{Level: LevelPass, Name: "Repository", Details: "git repository detected"})
 	} else {
 		return Report{Results: append(results, CheckResult{Level: LevelFail, Name: "Repository", Details: "not a git repository"})}
 	}
 
-	configPath := filepath.Join(dir, config.FileName)
+	configPath := filepath.Join(repoRoot, config.FileName)
 	if _, err := os.Stat(configPath); err == nil {
 		results = append(results, CheckResult{Level: LevelPass, Name: "Config", Details: config.FileName + " exists"})
 	} else {
 		results = append(results, CheckResult{Level: LevelFail, Name: "Config", Details: config.FileName + " is missing"})
 	}
 
-	attributesPath := filepath.Join(dir, ".gitattributes")
+	attributesPath := filepath.Join(repoRoot, ".gitattributes")
 	attributesData, err := os.ReadFile(attributesPath)
 	if err != nil {
 		results = append(results, CheckResult{Level: LevelFail, Name: "Attributes", Details: ".gitattributes is missing"})
@@ -87,7 +93,23 @@ func Run(dir string, runner gitx.Runner) Report {
 		}
 	}
 
-	untracked, err := FindUntrackedCADFiles(dir, runner)
+	if manifest, err := metadata.Load(repoRoot); err == nil {
+		results = append(results, CheckResult{Level: LevelPass, Name: "Metadata", Details: fmt.Sprintf("metadata manifest has %d records", len(manifest.Records))})
+	} else if os.IsNotExist(err) {
+		results = append(results, CheckResult{Level: LevelWarn, Name: "Metadata", Details: "metadata manifest is missing"})
+	} else {
+		results = append(results, CheckResult{Level: LevelWarn, Name: "Metadata", Details: "metadata manifest cannot be read: " + err.Error()})
+	}
+
+	if manifest, err := preview.Load(repoRoot); err == nil {
+		results = append(results, CheckResult{Level: LevelPass, Name: "Previews", Details: fmt.Sprintf("preview manifest has %d records", len(manifest.Records))})
+	} else if os.IsNotExist(err) {
+		results = append(results, CheckResult{Level: LevelWarn, Name: "Previews", Details: "preview manifest is missing"})
+	} else {
+		results = append(results, CheckResult{Level: LevelWarn, Name: "Previews", Details: "preview manifest cannot be read: " + err.Error()})
+	}
+
+	untracked, err := FindUntrackedCADFiles(repoRoot, runner)
 	if err != nil {
 		results = append(results, CheckResult{Level: LevelWarn, Name: "CAD Coverage", Details: "unable to inspect CAD files: " + err.Error()})
 	} else if len(untracked) == 0 {
@@ -96,7 +118,7 @@ func Run(dir string, runner gitx.Runner) Report {
 		results = append(results, CheckResult{Level: LevelWarn, Name: "CAD Coverage", Details: "untracked CAD files: " + strings.Join(untracked, ", ")})
 	}
 
-	if gitx.HasRemote(runner, dir) {
+	if gitx.HasRemote(runner, repoRoot) {
 		results = append(results, CheckResult{Level: LevelPass, Name: "Remote", Details: "git remote configured"})
 	} else {
 		results = append(results, CheckResult{Level: LevelWarn, Name: "Remote", Details: "no git remote configured"})

@@ -154,6 +154,48 @@ func TestSaveLoadAndLookup(t *testing.T) {
 	}
 }
 
+func TestCheckCoverageReportsMissingAndStale(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	mustWriteFile(t, filepath.Join(root, "fresh.step"), "fresh")
+	mustWriteFile(t, filepath.Join(root, "stale.step"), "old")
+	freshInfo, err := os.Stat(filepath.Join(root, "fresh.step"))
+	if err != nil {
+		t.Fatalf("stat fresh: %v", err)
+	}
+	staleInfo, err := os.Stat(filepath.Join(root, "stale.step"))
+	if err != nil {
+		t.Fatalf("stat stale: %v", err)
+	}
+	freshRecord, err := BuildRecord(root, "fresh.step", freshInfo)
+	if err != nil {
+		t.Fatalf("build fresh record: %v", err)
+	}
+	staleRecord, err := BuildRecord(root, "stale.step", staleInfo)
+	if err != nil {
+		t.Fatalf("build stale record: %v", err)
+	}
+	if err := Save(root, Manifest{Records: []Record{freshRecord, staleRecord}}); err != nil {
+		t.Fatalf("save manifest: %v", err)
+	}
+	mustWriteFile(t, filepath.Join(root, "stale.step"), "new")
+
+	coverage, err := CheckCoverage(root, []string{"fresh.step", "stale.step", "missing.step"})
+	if err != nil {
+		t.Fatalf("check coverage: %v", err)
+	}
+	if !coverage.HasManifest {
+		t.Fatal("expected manifest")
+	}
+	if len(coverage.Missing) != 1 || coverage.Missing[0] != "missing.step" {
+		t.Fatalf("unexpected missing paths %#v", coverage.Missing)
+	}
+	if len(coverage.Stale) != 1 || coverage.Stale[0] != "stale.step" {
+		t.Fatalf("unexpected stale paths %#v", coverage.Stale)
+	}
+}
+
 func mustWriteFile(t *testing.T, path, content string) {
 	t.Helper()
 
