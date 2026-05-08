@@ -116,7 +116,7 @@ func RecentHistory(runner Runner, dir string, limit int) (string, error) {
 		"log",
 		"-n", strconv.Itoa(limit),
 		"--date=short",
-		"--pretty=format:%H%x1f%ad%x1f%s%x1e",
+		"--pretty=format:%x1e%H%x1f%ad%x1f%s",
 		"--name-only",
 	)
 	if err != nil {

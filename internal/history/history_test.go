@@ -40,6 +40,22 @@ func TestParseLog(t *testing.T) {
 	}
 }
 
+func TestParseLogWithRecordSeparatorBeforeCommitHeader(t *testing.T) {
+	t.Parallel()
+
+	output := "\x1eabcdef1234567890\x1f2026-05-08\x1fsnapshot\n" +
+		"assembly.sldasm\n" +
+		"export.step\n"
+
+	entries := ParseLog(output)
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(entries))
+	}
+	if len(entries[0].CADFiles) != 2 {
+		t.Fatalf("expected CAD files from git name-only output, got %#v", entries[0].CADFiles)
+	}
+}
+
 func TestFormat(t *testing.T) {
 	t.Parallel()
 
