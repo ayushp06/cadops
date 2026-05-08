@@ -85,9 +85,11 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 `cadops watch` monitors the current repository recursively, reacts only to CAD extensions configured in `.cadops.yaml`, prints concise change lines, and can auto-stage changed CAD files when `auto_stage: true`.
 
+`cadops status` groups working tree changes into CAD and non-CAD files, reports missing or stale metadata records for changed CAD files, reports missing or stale preview records, and warns when changed CAD extensions lack matching Git LFS attributes.
+
 `cadops snapshot` stages changed CAD files, regenerates the repo metadata and lightweight preview manifests before commit, includes `.cadops/metadata/manifest.json` and `.cadops/previews/manifest.json` in the same snapshot when refresh succeeds, and creates a timestamped snapshot commit like `snapshot: 2026-04-14 15:42`. Metadata and preview refresh warnings do not block snapshot creation.
 
-`cadops commit -m "message"` runs CAD-aware pre-commit checks, warns about unstaged changes, missing LFS coverage, and missing local locks for recommended-lock CAD files when lock inspection is available, then delegates to `git commit -m`.
+`cadops commit -m "message"` runs CAD-aware pre-commit checks, warns about unstaged changes, missing LFS coverage, missing local locks for recommended-lock CAD files when lock inspection is available, and stale or missing metadata/preview records, then delegates to `git commit -m`. It does not auto-stage unrelated files.
 
 `cadops files` scans the current Git repository recursively for configured CAD extensions, groups matches by CAD type, and shows each file path with its CAD type and lock recommendation.
 
@@ -100,6 +102,8 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 `cadops preview generate` creates V1 preview records under `.cadops/previews/manifest.json` for configured CAD files. This does not render proprietary CAD geometry. If a same-name sidecar image such as `part.png`, `part.jpg`, or `part.jpeg` exists next to the CAD file, CadOps records it as a referenced artifact; otherwise it stores an honest unavailable or unsupported placeholder record. `cadops preview show <file>` prints one record and marks it stale when the source hash has changed. `cadops preview list` shows all stored preview records.
 
 `cadops config show` prints the supported `.cadops.yaml` keys in a concise terminal format. `cadops config get <key>` returns a single value for `version`, `tracked_extensions`, `auto_stage`, `require_lfs`, or `locking_enabled`.
+
+`cadops doctor` validates Git, Git LFS, repository state, `.cadops.yaml`, `.gitattributes`, metadata and preview manifest state, CAD tracking coverage, and remote configuration. Checks are reported as `PASS`, `WARN`, or `FAIL`.
 
 `cadops push` runs light CAD-aware pre-push checks, warns about local CAD changes or missing LFS coverage, and stops early when no remote is configured before delegating to `git push`.
 
