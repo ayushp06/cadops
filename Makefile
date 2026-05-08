@@ -9,7 +9,7 @@ endif
 
 BINARY := $(BIN_DIR)/$(APP_NAME)$(EXE)
 
-.PHONY: build install test fmt clean build-all
+.PHONY: build install test fmt vet clean build-all
 
 build:
 	mkdir -p $(BIN_DIR)
@@ -23,6 +23,9 @@ test:
 
 fmt:
 	$(GO) fmt ./...
+
+vet:
+	$(GO) vet ./...
 
 clean:
 	rm -rf $(BIN_DIR) $(DIST_DIR)

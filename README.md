@@ -59,7 +59,27 @@ cadops doctor
 
 If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor` will report repository health checks instead of failing due to a missing command.
 
-## Commands
+## Quickstart
+
+```bash
+mkdir cadops-demo
+cd cadops-demo
+git init
+cadops init
+mkdir parts exports docs
+printf "fake solidworks part\n" > parts/part.sldprt
+printf "fake solidworks assembly\n" > parts/assembly.sldasm
+printf "ISO-10303-21;\n" > exports/export.step
+printf "notes\n" > docs/notes.txt
+cadops metadata generate
+cadops preview generate
+cadops scan
+cadops status
+```
+
+The fake CAD files are enough to exercise CadOps classification, metadata, preview records, LFS policy checks, and status output without requiring CAD software.
+
+## Command Reference
 
 - `cadops init`
 - `cadops status`
@@ -113,7 +133,11 @@ If CadOps, Git, Git LFS, and the repository setup are available, `cadops doctor`
 
 `cadops lock` and `cadops unlock` wrap `git lfs lock` and `git lfs unlock`, validate that the target file exists, and warn when locking is recommended for the file type but Git LFS is not configured correctly for that type.
 
+## Limitations
+
 CadOps does not auto-commit from `watch`, does not implement semantic CAD diffing, does not implement geometry-aware metadata, and does not implement semantic CAD history yet. Preview V1 stores preview manifests and optional references to real sidecar images only; it does not render SolidWorks, NX, Inventor, or other proprietary CAD geometry.
+
+CadOps relies on Git, Git LFS, filesystem metadata, SHA-256 hashes, configured CAD extensions, and stored CadOps manifests. It does not inspect proprietary CAD feature trees, assemblies, constraints, drawings, or model geometry.
 
 ## Development
 
