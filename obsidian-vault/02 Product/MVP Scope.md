@@ -12,8 +12,10 @@ Auto-commit and preview generation are intentionally deferred.
 
 `cadops config` is read-only in the current phase and focuses on clear inspection of `.cadops.yaml`.
 
-`cadops diff` adds a readable Git-backed working tree summary with CAD versus non-CAD grouping plus stored metadata-aware enrichment from `.cadops/metadata/manifest.json`, while still deferring semantic CAD diffing, previews, and geometry-aware analysis.
+`cadops diff` adds a readable Git-backed working tree summary with CAD versus non-CAD grouping plus stored metadata-aware enrichment from `.cadops/metadata/manifest.json` and preview record status from `.cadops/previews/manifest.json`, while still deferring semantic CAD diffing and geometry-aware analysis.
 
 `cadops push` and `cadops pull` add lightweight collaboration guardrails around the underlying Git commands without attempting advanced merge or history analysis.
 
-`cadops history` adds a readable recent commit view with CAD file filtering plus commit-scoped metadata-aware enrichment when manifests are present in Git history, but still defers semantic change detection, previews, and geometry-aware analysis.
+`cadops history` adds a readable recent commit view with CAD file filtering plus commit-scoped metadata and preview enrichment when manifests are present in Git history, but still defers semantic change detection and geometry-aware analysis.
+
+`cadops preview` adds a V1 preview artifact pipeline that records source hashes, CAD type, status, optional real sidecar image artifact paths, and unsupported reasons under `.cadops/previews/manifest.json`. It does not render proprietary CAD geometry.

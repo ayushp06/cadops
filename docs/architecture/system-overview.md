@@ -12,6 +12,7 @@ CadOps is a Go CLI built on Cobra.
 - `internal/files` owns recursive CAD file scanning and grouping.
 - `internal/history` owns constrained Git history parsing, commit-scoped metadata enrichment, and compact terminal formatting.
 - `internal/metadata` owns filesystem-level CAD metadata scanning, hashing, manifest storage, and lookup.
+- `internal/preview` owns V1 preview record generation, stale detection, manifest storage, and optional references to existing sidecar image artifacts.
 - `internal/scan` owns repository-level CAD audit aggregation, LFS checks, and reporting helpers.
 - `internal/doctor` evaluates repository health checks.
 - `internal/snapshot` owns CAD snapshot selection and commit message generation.

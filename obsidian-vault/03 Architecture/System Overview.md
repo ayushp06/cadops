@@ -5,6 +5,7 @@ CadOps is a Go CLI built on Cobra with thin command handlers and small internal 
 - `internal/config` loads `.cadops.yaml`.
 - `internal/gitx` wraps Git and Git LFS commands.
 - `internal/metadata` builds and stores filesystem-level CAD metadata in `.cadops/metadata/manifest.json`.
+- `internal/preview` builds and stores V1 preview records in `.cadops/previews/manifest.json` without proprietary CAD rendering.
 - `internal/scan` aggregates repo-level CAD audit summaries, LFS checks, and largest-file views.
 - `internal/diff` isolates Git-backed diff classification, metadata-aware comparison, and terminal formatting.
 - `internal/history` isolates constrained Git history parsing, commit-scoped metadata enrichment, and terminal formatting.
