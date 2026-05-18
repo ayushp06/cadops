@@ -4,6 +4,19 @@ CadOps is a CAD-aware command-line workflow layer over Git and Git LFS. The curr
 
 CadOps requires both `git` and `git lfs` to be installed on the user machine.
 
+## Supported CAD Files
+
+CadOps detects and applies Git LFS policy to these CAD extensions by default:
+
+- SolidWorks: `.sldprt`, `.sldasm`
+- Generic part and exchange formats: `.prt`, `.step`, `.stp`, `.iges`, `.igs`
+- Mesh and archive formats: `.stl`
+- Fusion 360: `.f3d`, `.f3z`
+- Inventor: `.ipt`, `.iam`
+- FreeCAD: `.fcstd`
+
+The generated `.cadops.yaml` stores the active extension list as `tracked_extensions`, and `cadops init` writes matching `.gitattributes` rules so these files are tracked through Git LFS.
+
 ## Installation
 
 ### Build From Source
@@ -69,6 +82,8 @@ cadops init
 mkdir parts exports docs
 printf "fake solidworks part\n" > parts/part.sldprt
 printf "fake solidworks assembly\n" > parts/assembly.sldasm
+printf "fake fusion archive\n" > parts/archive.f3z
+printf "fake mesh\n" > exports/mesh.stl
 printf "ISO-10303-21;\n" > exports/export.step
 printf "notes\n" > docs/notes.txt
 cadops metadata generate
@@ -78,6 +93,20 @@ cadops status
 ```
 
 The fake CAD files are enough to exercise CadOps classification, metadata, preview records, LFS policy checks, and status output without requiring CAD software.
+
+For a real remote workflow, create a GitHub repository with Git LFS enabled, add it as `origin`, then use the guarded CadOps wrappers:
+
+```bash
+git remote add origin https://github.com/<owner>/<repo>.git
+git add .
+cadops commit -m "Initialize CadOps tracking"
+cadops push
+cadops pull
+cadops lock parts/assembly.sldasm
+cadops unlock parts/assembly.sldasm
+```
+
+Git LFS locking requires a remote that supports the LFS locking API, such as GitHub. Local `file://` bare repositories are useful for push and pull smoke tests, but they do not support LFS locks.
 
 ## Command Reference
 
@@ -103,7 +132,7 @@ The fake CAD files are enough to exercise CadOps classification, metadata, previ
 - `cadops lock <file>`
 - `cadops unlock <file>`
 
-`cadops watch` monitors the current repository recursively, reacts only to CAD extensions configured in `.cadops.yaml`, prints concise change lines, and can auto-stage changed CAD files when `auto_stage: true`.
+`cadops watch` monitors the Git repository recursively, reacts only to CAD extensions configured in `.cadops.yaml`, prints concise change lines, and can auto-stage changed CAD files when `auto_stage: true`.
 
 `cadops status` groups working tree changes into CAD and non-CAD files, reports missing or stale metadata records for changed CAD files, reports missing or stale preview records, and warns when changed CAD extensions lack matching Git LFS attributes.
 
@@ -121,7 +150,7 @@ The fake CAD files are enough to exercise CadOps classification, metadata, previ
 
 `cadops preview generate` creates V1 preview records under `.cadops/previews/manifest.json` for configured CAD files. This does not render proprietary CAD geometry. If a same-name sidecar image such as `part.png`, `part.jpg`, or `part.jpeg` exists next to the CAD file, CadOps records it as a referenced artifact; otherwise it stores an honest unavailable or unsupported placeholder record. `cadops preview show <file>` prints one record and marks it stale when the source hash has changed. `cadops preview list` shows all stored preview records.
 
-`cadops config show` prints the supported `.cadops.yaml` keys in a concise terminal format. `cadops config get <key>` returns a single value for `version`, `tracked_extensions`, `auto_stage`, `require_lfs`, or `locking_enabled`.
+`cadops config show` prints the supported `.cadops.yaml` keys in a concise terminal format. `cadops config get <key>` returns a single value for `version`, `tracked_extensions`, `auto_stage`, `require_lfs`, or `locking_enabled`. Both commands can be run from the repository root or a subdirectory.
 
 `cadops doctor` validates Git, Git LFS, repository state, `.cadops.yaml`, `.gitattributes`, metadata and preview manifest state, CAD tracking coverage, and remote configuration. Checks are reported as `PASS`, `WARN`, or `FAIL`.
 
@@ -131,7 +160,7 @@ The fake CAD files are enough to exercise CadOps classification, metadata, previ
 
 `cadops history` shows a compact recent commit view with short hash, date, message, and changed CAD files for each commit. When `.cadops/metadata/manifest.json` is present in commit history, it also adds compact CAD metadata context per changed file such as CAD type, stored file size, and checksum-changed or size-delta indicators when both the commit and its first parent contain usable metadata manifests. When `.cadops/previews/manifest.json` is present in commit history, it adds preview availability for changed CAD files. Missing metadata or preview records fall back cleanly to concise unavailable annotations.
 
-`cadops lock` and `cadops unlock` wrap `git lfs lock` and `git lfs unlock`, validate that the target file exists, and warn when locking is recommended for the file type but Git LFS is not configured correctly for that type.
+`cadops lock` and `cadops unlock` wrap `git lfs lock` and `git lfs unlock`, validate that the target file exists, and warn when locking is recommended for the file type but Git LFS is not configured correctly for that type. Locking is recommended for single-writer binary formats such as SolidWorks assemblies, Fusion 360 archives, and generic part files.
 
 ## Limitations
 
