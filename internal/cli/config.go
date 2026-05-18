@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/cadops/cadops/internal/config"
+	"github.com/cadops/cadops/internal/gitx"
 	"github.com/spf13/cobra"
 )
 
@@ -50,7 +51,11 @@ func newConfigGetCmd() *cobra.Command {
 }
 
 func runConfigShow(dir string) error {
-	cfg, err := config.Load(filepath.Join(dir, config.FileName))
+	repoRoot, err := configRepoRoot(dir)
+	if err != nil {
+		return err
+	}
+	cfg, err := config.Load(filepath.Join(repoRoot, config.FileName))
 	if err != nil {
 		return err
 	}
@@ -67,7 +72,11 @@ func runConfigShow(dir string) error {
 }
 
 func runConfigGet(dir, key string) error {
-	cfg, err := config.Load(filepath.Join(dir, config.FileName))
+	repoRoot, err := configRepoRoot(dir)
+	if err != nil {
+		return err
+	}
+	cfg, err := config.Load(filepath.Join(repoRoot, config.FileName))
 	if err != nil {
 		return err
 	}
@@ -79,4 +88,12 @@ func runConfigGet(dir, key string) error {
 
 	fmt.Println(config.FormatValue(value))
 	return nil
+}
+
+func configRepoRoot(dir string) (string, error) {
+	runner := gitx.Runner{}
+	if !gitx.IsRepo(runner, dir) {
+		return "", fmt.Errorf("not a git repository")
+	}
+	return gitx.RepoRoot(runner, dir)
 }

@@ -51,6 +51,26 @@ func TestParseStatusPorcelainHandlesTrimmedLeadingSpace(t *testing.T) {
 	}
 }
 
+func TestParseStatusPorcelainUnquotesPaths(t *testing.T) {
+	t.Parallel()
+
+	output := " M \"Edesign Final Project.SLDASM\"\nR  \"old assembly.sldasm\" -> \"new assembly.sldasm\"\n"
+	entries := ParseStatusPorcelain(output)
+
+	if len(entries) != 2 {
+		t.Fatalf("expected 2 entries, got %d", len(entries))
+	}
+	if entries[0].Path != "Edesign Final Project.SLDASM" {
+		t.Fatalf("expected unquoted path, got %q", entries[0].Path)
+	}
+	if entries[1].OldPath != "old assembly.sldasm" {
+		t.Fatalf("expected unquoted old path, got %q", entries[1].OldPath)
+	}
+	if entries[1].Path != "new assembly.sldasm" {
+		t.Fatalf("expected unquoted new path, got %q", entries[1].Path)
+	}
+}
+
 func TestParseFirstParent(t *testing.T) {
 	t.Parallel()
 

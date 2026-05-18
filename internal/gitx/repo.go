@@ -81,6 +81,8 @@ func ParseStatusPorcelain(out string) []StatusEntry {
 			oldPath = strings.TrimSpace(parts[0])
 			path = strings.TrimSpace(parts[len(parts)-1])
 		}
+		path = decodeStatusPath(path)
+		oldPath = decodeStatusPath(oldPath)
 		entries = append(entries, StatusEntry{
 			Code:    code,
 			Path:    filepath.ToSlash(path),
@@ -88,6 +90,17 @@ func ParseStatusPorcelain(out string) []StatusEntry {
 		})
 	}
 	return entries
+}
+
+func decodeStatusPath(path string) string {
+	if path == "" || path[0] != '"' {
+		return path
+	}
+	decoded, err := strconv.Unquote(path)
+	if err != nil {
+		return path
+	}
+	return decoded
 }
 
 // HasRemote reports whether the repository has any configured remotes.

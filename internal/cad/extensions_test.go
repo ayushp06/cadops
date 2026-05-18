@@ -5,8 +5,10 @@ import "testing"
 func TestIsCADExtension(t *testing.T) {
 	t.Parallel()
 
-	if !IsCADExtension(".sldprt") {
-		t.Fatalf("expected .sldprt to be detected")
+	for _, extension := range []string{".sldprt", ".sldasm", ".prt", ".step", ".stp", ".iges", ".igs", ".stl", ".f3d", ".f3z", ".ipt", ".iam", ".fcstd"} {
+		if !IsCADExtension(extension) {
+			t.Fatalf("expected %s to be detected", extension)
+		}
 	}
 
 	if !IsCADExtension(".FCSTD") {

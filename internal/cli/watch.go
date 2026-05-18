@@ -33,7 +33,12 @@ func runWatch(dir string) error {
 		return fmt.Errorf("not a git repository")
 	}
 
-	cfg, err := config.Load(filepath.Join(dir, config.FileName))
+	repoRoot, err := gitx.RepoRoot(runner, dir)
+	if err != nil {
+		return err
+	}
+
+	cfg, err := config.Load(filepath.Join(repoRoot, config.FileName))
 	if err != nil {
 		return err
 	}
@@ -41,17 +46,17 @@ func runWatch(dir string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	fmt.Printf("Watching %s for CAD changes\n", dir)
+	fmt.Printf("Watching %s for CAD changes\n", repoRoot)
 	if cfg.AutoStage {
 		fmt.Println("Auto-stage enabled")
 	} else {
 		fmt.Println("Auto-stage disabled")
 	}
 
-	watcher := watch.New(dir, cfg.TrackedExtensions)
+	watcher := watch.New(repoRoot, cfg.TrackedExtensions)
 	return watcher.Run(ctx, func(event watch.Event) {
 		status, err := watch.ProcessEvent(event, cfg.AutoStage, func(path string) error {
-			return gitx.StagePath(runner, dir, path)
+			return gitx.StagePath(runner, repoRoot, path)
 		})
 		if err != nil {
 			fmt.Printf("stage error %s: %v\n", event.Path, err)
