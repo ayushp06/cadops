@@ -19,6 +19,58 @@ The generated `.cadops.yaml` stores the active extension list as `tracked_extens
 
 ## Installation
 
+### Install From GitHub Releases
+
+CadOps release archives are published for:
+
+- Windows x64: `cadops-windows-amd64.zip`
+- Windows Arm64: `cadops-windows-arm64.zip`
+- Linux x64: `cadops-linux-amd64.tar.gz`
+- Linux Arm64: `cadops-linux-arm64.tar.gz`
+- macOS Intel: `cadops-darwin-amd64.tar.gz`
+- macOS Apple Silicon: `cadops-darwin-arm64.tar.gz`
+
+Each archive contains the `cadops` or `cadops.exe` binary plus `README.md` and `LICENSE`. Matching `.sha256` files are published next to each archive so you can verify downloads before installing.
+
+#### Windows
+
+1. Download the latest `cadops-windows-amd64.zip` or `cadops-windows-arm64.zip` archive from [GitHub Releases](https://github.com/cadops/cadops/releases/latest).
+2. Extract the archive.
+3. Move `cadops.exe` to a directory on your `PATH`, such as `%USERPROFILE%\bin`.
+4. Install Git and Git LFS if they are not already installed.
+5. Open a new terminal and verify the install:
+
+```powershell
+cadops version
+```
+
+#### macOS and Linux
+
+1. Download the latest archive for your platform from [GitHub Releases](https://github.com/cadops/cadops/releases/latest).
+2. Extract it and install the binary to a directory on your `PATH`:
+
+```bash
+tar -xzf cadops-linux-amd64.tar.gz
+sudo install -m 0755 cadops-linux-amd64/cadops /usr/local/bin/cadops
+cadops version
+```
+
+Use the matching extracted directory name for your platform, such as `cadops-darwin-arm64` on Apple Silicon Macs.
+
+### Install With Go
+
+If you already have Go installed, you can install the CLI directly from the module:
+
+```bash
+go install github.com/cadops/cadops/cmd/cadops@latest
+```
+
+Make sure your Go bin directory is on `PATH`, then run:
+
+```bash
+cadops version
+```
+
 ### Build From Source
 
 Prerequisites:
@@ -45,22 +97,6 @@ make install
 ```
 
 Make sure your Go bin directory is on `PATH`.
-
-### Install From GitHub Releases
-
-1. Open the latest release on GitHub.
-2. Download the archive for your platform:
-   - `windows-amd64`
-   - `windows-arm64`
-   - `linux-amd64`
-   - `linux-arm64`
-   - `darwin-amd64`
-   - `darwin-arm64`
-3. Extract the archive.
-4. Put `cadops` or `cadops.exe` somewhere on your `PATH`.
-5. Ensure `git` and `git lfs` are installed on the machine.
-
-Release archives contain the binary as `cadops` or `cadops.exe`.
 
 ### Verify Installation
 

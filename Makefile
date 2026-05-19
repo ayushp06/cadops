@@ -2,6 +2,10 @@ APP_NAME := cadops
 GO ?= go
 BIN_DIR := bin
 DIST_DIR := dist
+VERSION ?= dev
+COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo none)
+DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+LDFLAGS := -s -w -X github.com/cadops/cadops/internal/cli.version=$(VERSION) -X github.com/cadops/cadops/internal/cli.commit=$(COMMIT) -X github.com/cadops/cadops/internal/cli.date=$(DATE)
 
 ifeq ($(OS),Windows_NT)
 EXE := .exe
@@ -13,7 +17,7 @@ BINARY := $(BIN_DIR)/$(APP_NAME)$(EXE)
 
 build:
 	mkdir -p $(BIN_DIR)
-	$(GO) build -o $(BINARY) ./cmd/cadops
+	$(GO) build -ldflags "$(LDFLAGS)" -o $(BINARY) ./cmd/cadops
 
 install:
 	$(GO) install ./cmd/cadops
@@ -38,9 +42,9 @@ build-all:
 	mkdir -p $(DIST_DIR)/cadops-linux-arm64
 	mkdir -p $(DIST_DIR)/cadops-darwin-amd64
 	mkdir -p $(DIST_DIR)/cadops-darwin-arm64
-	GOOS=windows GOARCH=amd64 $(GO) build -o $(DIST_DIR)/cadops-windows-amd64/cadops.exe ./cmd/cadops
-	GOOS=windows GOARCH=arm64 $(GO) build -o $(DIST_DIR)/cadops-windows-arm64/cadops.exe ./cmd/cadops
-	GOOS=linux GOARCH=amd64 $(GO) build -o $(DIST_DIR)/cadops-linux-amd64/cadops ./cmd/cadops
-	GOOS=linux GOARCH=arm64 $(GO) build -o $(DIST_DIR)/cadops-linux-arm64/cadops ./cmd/cadops
-	GOOS=darwin GOARCH=amd64 $(GO) build -o $(DIST_DIR)/cadops-darwin-amd64/cadops ./cmd/cadops
-	GOOS=darwin GOARCH=arm64 $(GO) build -o $(DIST_DIR)/cadops-darwin-arm64/cadops ./cmd/cadops
+	GOOS=windows GOARCH=amd64 $(GO) build -ldflags "$(LDFLAGS)" -o $(DIST_DIR)/cadops-windows-amd64/cadops.exe ./cmd/cadops
+	GOOS=windows GOARCH=arm64 $(GO) build -ldflags "$(LDFLAGS)" -o $(DIST_DIR)/cadops-windows-arm64/cadops.exe ./cmd/cadops
+	GOOS=linux GOARCH=amd64 $(GO) build -ldflags "$(LDFLAGS)" -o $(DIST_DIR)/cadops-linux-amd64/cadops ./cmd/cadops
+	GOOS=linux GOARCH=arm64 $(GO) build -ldflags "$(LDFLAGS)" -o $(DIST_DIR)/cadops-linux-arm64/cadops ./cmd/cadops
+	GOOS=darwin GOARCH=amd64 $(GO) build -ldflags "$(LDFLAGS)" -o $(DIST_DIR)/cadops-darwin-amd64/cadops ./cmd/cadops
+	GOOS=darwin GOARCH=arm64 $(GO) build -ldflags "$(LDFLAGS)" -o $(DIST_DIR)/cadops-darwin-arm64/cadops ./cmd/cadops
