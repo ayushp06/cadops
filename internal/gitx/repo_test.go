@@ -81,3 +81,14 @@ func TestParseFirstParent(t *testing.T) {
 		t.Fatalf("expected empty parent, got %q", got)
 	}
 }
+
+func TestParseFirstRemote(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseFirstRemote("origin\nbackup\n"); got != "origin" {
+		t.Fatalf("unexpected first remote %q", got)
+	}
+	if got := ParseFirstRemote(""); got != "" {
+		t.Fatalf("expected empty remote, got %q", got)
+	}
+}
