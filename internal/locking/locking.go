@@ -19,13 +19,19 @@ type Assessment struct {
 
 // ResolveTarget validates that the path exists and returns a repo-relative path.
 func ResolveTarget(root, target string) (string, error) {
+	return ResolveTargetFrom(root, root, target)
+}
+
+// ResolveTargetFrom validates a target path from currentDir and returns a
+// repo-relative path.
+func ResolveTargetFrom(root, currentDir, target string) (string, error) {
 	if strings.TrimSpace(target) == "" {
 		return "", fmt.Errorf("target file path is required")
 	}
 
 	absolute := target
 	if !filepath.IsAbs(absolute) {
-		absolute = filepath.Join(root, target)
+		absolute = filepath.Join(currentDir, target)
 	}
 
 	info, err := os.Stat(absolute)

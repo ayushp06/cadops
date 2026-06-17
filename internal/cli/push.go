@@ -30,26 +30,31 @@ func runPush(dir string) error {
 		return fmt.Errorf("not a git repository")
 	}
 
-	entries, err := gitx.StatusPorcelain(runner, dir)
+	repoRoot, err := gitx.RepoRoot(runner, dir)
 	if err != nil {
 		return err
 	}
-	trackedFiles, err := gitx.ListTrackedFiles(runner, dir)
+
+	entries, err := gitx.StatusPorcelain(runner, repoRoot)
 	if err != nil {
 		return err
 	}
-	attributesData, err := os.ReadFile(filepath.Join(dir, ".gitattributes"))
+	trackedFiles, err := gitx.ListTrackedFiles(runner, repoRoot)
+	if err != nil {
+		return err
+	}
+	attributesData, err := os.ReadFile(filepath.Join(repoRoot, ".gitattributes"))
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
-	report := collab.AssessPush(entries, trackedFiles, string(attributesData), gitx.HasRemote(runner, dir))
+	report := collab.AssessPush(entries, trackedFiles, string(attributesData), gitx.HasRemote(runner, repoRoot))
 	printWarnings(report.Warnings)
 	if !report.CanPush {
 		return fmt.Errorf("push preflight failed")
 	}
 
-	if err := gitx.Push(runner, dir); err != nil {
+	if err := gitx.Push(runner, repoRoot); err != nil {
 		return err
 	}
 

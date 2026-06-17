@@ -53,12 +53,17 @@ func runLockAction(dir, target, verb string, action func(gitx.Runner, string, st
 		return fmt.Errorf("not a git repository")
 	}
 
-	path, err := locking.ResolveTarget(dir, target)
+	repoRoot, err := gitx.RepoRoot(runner, dir)
 	if err != nil {
 		return err
 	}
 
-	assessment, err := locking.AssessTarget(dir, path, gitx.HasLFS(runner, dir))
+	path, err := locking.ResolveTargetFrom(repoRoot, dir, target)
+	if err != nil {
+		return err
+	}
+
+	assessment, err := locking.AssessTarget(repoRoot, path, gitx.HasLFS(runner, repoRoot))
 	if err != nil {
 		return err
 	}
@@ -66,7 +71,7 @@ func runLockAction(dir, target, verb string, action func(gitx.Runner, string, st
 		fmt.Printf("Warning: %s\n", warning)
 	}
 
-	if err := action(runner, dir, path); err != nil {
+	if err := action(runner, repoRoot, path); err != nil {
 		return err
 	}
 

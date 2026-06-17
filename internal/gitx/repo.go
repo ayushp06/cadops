@@ -111,6 +111,15 @@ func HasRemote(runner Runner, dir string) bool {
 
 // Push runs `git push` in the repository.
 func Push(runner Runner, dir string) error {
+	if _, err := runner.Run(dir, "git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"); err != nil {
+		result, remoteErr := runner.Run(dir, "git", "remote")
+		if remoteErr == nil {
+			if remote := ParseFirstRemote(result.Stdout); remote != "" {
+				_, err := runner.Run(dir, "git", "push", "--set-upstream", remote, "HEAD")
+				return err
+			}
+		}
+	}
 	_, err := runner.Run(dir, "git", "push")
 	return err
 }
@@ -208,6 +217,15 @@ func AttributeLine(extension string) string {
 
 // ParseFirstParent extracts the first parent hash from `%P` output.
 func ParseFirstParent(out string) string {
+	fields := strings.Fields(strings.TrimSpace(out))
+	if len(fields) == 0 {
+		return ""
+	}
+	return fields[0]
+}
+
+// ParseFirstRemote returns the first configured remote from `git remote`.
+func ParseFirstRemote(out string) string {
 	fields := strings.Fields(strings.TrimSpace(out))
 	if len(fields) == 0 {
 		return ""
