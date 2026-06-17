@@ -1,6 +1,10 @@
 package gitx
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
 
 func TestParseStatusPorcelain(t *testing.T) {
 	t.Parallel()
@@ -19,6 +23,25 @@ func TestParseStatusPorcelain(t *testing.T) {
 	}
 	if entries[2].Path != "new.step" {
 		t.Fatalf("expected rename target path, got %q", entries[2].Path)
+	}
+}
+
+func TestStatusPorcelainIncludesAllUntrackedFiles(t *testing.T) {
+	t.Parallel()
+
+	runner := Runner{}
+	dir := t.TempDir()
+	if _, err := runner.Run(dir, "git", "init"); err != nil {
+		t.Fatalf("init repo: %v", err)
+	}
+	mustWriteFile(t, filepath.Join(dir, "parts", "new.sldprt"), "part")
+
+	entries, err := StatusPorcelain(runner, dir)
+	if err != nil {
+		t.Fatalf("status porcelain: %v", err)
+	}
+	if len(entries) != 1 || entries[0].Path != "parts/new.sldprt" {
+		t.Fatalf("expected nested untracked file, got %#v", entries)
 	}
 }
 
@@ -90,5 +113,16 @@ func TestParseFirstRemote(t *testing.T) {
 	}
 	if got := ParseFirstRemote(""); got != "" {
 		t.Fatalf("expected empty remote, got %q", got)
+	}
+}
+
+func mustWriteFile(t *testing.T, path, content string) {
+	t.Helper()
+
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatalf("mkdir %s: %v", path, err)
+	}
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatalf("write %s: %v", path, err)
 	}
 }

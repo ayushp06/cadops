@@ -52,7 +52,7 @@ func InitRepo(runner Runner, dir string) error {
 
 // StatusPorcelain returns parsed porcelain status entries.
 func StatusPorcelain(runner Runner, dir string) ([]StatusEntry, error) {
-	result, err := runner.Run(dir, "git", "status", "--porcelain")
+	result, err := runner.Run(dir, "git", "status", "--porcelain", "--untracked-files=all")
 	if err != nil {
 		return nil, err
 	}
