@@ -166,6 +166,10 @@ func findUncoveredLFS(dir string, cadEntries []gitx.StatusEntry) ([]string, erro
 			continue
 		}
 		seen[ext] = true
+		fileType, ok := cad.Lookup(ext)
+		if !ok || !fileType.UseLFS {
+			continue
+		}
 		if !strings.Contains(attributes, gitx.AttributeLine(ext)) {
 			uncovered = append(uncovered, entry.Path)
 		}

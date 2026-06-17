@@ -65,7 +65,7 @@ func TestFindUncoveredCADFiles(t *testing.T) {
 	t.Parallel()
 
 	uncovered := FindUncoveredCADFiles(
-		[]string{"parts/widget.sldprt", "assemblies/top.sldasm", "README.md"},
+		[]string{"parts/widget.sldprt", "assemblies/top.sldasm", "boards/main.kicad_pcb", "README.md"},
 		"*.sldasm filter=lfs diff=lfs merge=lfs -text\n",
 	)
 

@@ -16,6 +16,14 @@ var supportedTypes = []FileType{
 	{Extension: ".ipt", Name: "Inventor Part", UseLFS: true, RecommendLocking: true},
 	{Extension: ".iam", Name: "Inventor Assembly", UseLFS: true, RecommendLocking: true},
 	{Extension: ".fcstd", Name: "FreeCAD Document", UseLFS: true, RecommendLocking: true},
+	{Extension: ".kicad_pro", Name: "KiCad Project", UseLFS: false, RecommendLocking: false},
+	{Extension: ".kicad_pcb", Name: "KiCad PCB", UseLFS: false, RecommendLocking: false},
+	{Extension: ".kicad_sch", Name: "KiCad Schematic", UseLFS: false, RecommendLocking: false},
+	{Extension: ".kicad_sym", Name: "KiCad Symbol Library", UseLFS: false, RecommendLocking: false},
+	{Extension: ".kicad_prl", Name: "KiCad Local Project", UseLFS: false, RecommendLocking: false},
+	{Extension: ".kicad_mod", Name: "KiCad Footprint", UseLFS: false, RecommendLocking: false},
+	{Extension: ".kicad_wks", Name: "KiCad Worksheet", UseLFS: false, RecommendLocking: false},
+	{Extension: ".kicad_dru", Name: "KiCad Design Rules", UseLFS: false, RecommendLocking: false},
 }
 
 var byExtension = func() map[string]FileType {
@@ -38,6 +46,17 @@ func SupportedExtensions() []string {
 	out := make([]string, 0, len(supportedTypes))
 	for _, fileType := range supportedTypes {
 		out = append(out, fileType.Extension)
+	}
+	return out
+}
+
+// SupportedLFSExtensions returns supported extensions that should be stored in Git LFS.
+func SupportedLFSExtensions() []string {
+	out := make([]string, 0, len(supportedTypes))
+	for _, fileType := range supportedTypes {
+		if fileType.UseLFS {
+			out = append(out, fileType.Extension)
+		}
 	}
 	return out
 }

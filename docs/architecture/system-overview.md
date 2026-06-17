@@ -5,7 +5,7 @@ CadOps is a Go CLI built on Cobra.
 - `cmd/cadops` holds the executable entrypoint.
 - `internal/cli` contains thin command handlers.
 - `internal/gitx` wraps Git and Git LFS command execution plus parsing helpers.
-- `internal/cad` defines the supported CAD file registry.
+- `internal/cad` defines the supported CAD file registry and which formats should use Git LFS.
 - `internal/config` manages `.cadops.yaml`.
 - `internal/commit` owns CAD-aware commit preflight checks.
 - `internal/diff` owns Git-backed diff entry classification, metadata-aware comparison, and terminal formatting.

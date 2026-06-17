@@ -17,6 +17,8 @@ CadOps MVP intentionally covers the core repository, collaboration, and inspecti
 
 The product goal is safe Git and Git LFS setup for CAD-heavy repositories without introducing a new version control model.
 
+KiCad support is extension-aware only: CadOps tracks KiCad project, board, schematic, symbol, footprint, worksheet, design-rule, and local-project files through the same scan, status, metadata, preview-record, diff, history, and collaboration checks, but does not parse PCB or schematic semantics.
+
 `cadops watch` is limited to change detection, concise status output, and optional auto-staging. Auto-commit and preview generation remain out of scope.
 
 `cadops snapshot` is limited to CAD-file snapshots with an auto-generated timestamped commit message plus lightweight metadata and preview manifest refresh. Including other modified files and smart grouping remain out of scope.

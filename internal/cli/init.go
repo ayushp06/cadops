@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/cadops/cadops/internal/cad"
 	"github.com/cadops/cadops/internal/config"
 	"github.com/cadops/cadops/internal/gitx"
 	"github.com/spf13/cobra"
@@ -52,7 +53,7 @@ func runInit(dir string) error {
 		return err
 	}
 
-	if err := ensureAttributes(dir, cfg.TrackedExtensions); err != nil {
+	if err := ensureAttributes(dir, cad.SupportedLFSExtensions()); err != nil {
 		return err
 	}
 	if err := ensureGitIgnore(dir); err != nil {

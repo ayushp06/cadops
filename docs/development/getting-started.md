@@ -63,6 +63,8 @@ To audit CAD assets and repository configuration risk:
 go run ./cmd/cadops scan
 ```
 
+KiCad files such as `.kicad_pcb`, `.kicad_sch`, and `.kicad_pro` are included in CAD scans and metadata, but they are treated as normal text files unless you configure otherwise.
+
 To generate and inspect stored CAD metadata:
 
 ```bash

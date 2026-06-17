@@ -85,7 +85,7 @@ func Run(dir string, runner gitx.Runner) Report {
 	if err != nil {
 		results = append(results, CheckResult{Level: LevelFail, Name: "Attributes", Details: ".gitattributes is missing"})
 	} else {
-		missing := missingAttributeExtensions(string(attributesData), cad.SupportedExtensions())
+		missing := missingAttributeExtensions(string(attributesData), cad.SupportedLFSExtensions())
 		if len(missing) == 0 {
 			results = append(results, CheckResult{Level: LevelPass, Name: "Attributes", Details: "all CAD extensions have LFS attributes"})
 		} else {

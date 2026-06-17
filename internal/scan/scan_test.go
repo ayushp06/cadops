@@ -148,6 +148,7 @@ func TestFindLFSWarnings(t *testing.T) {
 	files := []File{
 		BuildFile("parts/gearbox.sldprt", 1),
 		BuildFile("exports/frame.step", 1),
+		BuildFile("boards/main.kicad_pcb", 1),
 	}
 
 	got := FindLFSWarnings(files, gitAttributes(".sldprt", ".step"))

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added KiCad file detection for project, board, schematic, symbol, footprint, worksheet, design-rule, and local-project files without forcing Git LFS.
 - Added metadata-aware diff and history enrichment from `.cadops/metadata/manifest.json`.
 - Added V1 preview record pipeline under `.cadops/previews/manifest.json`.
 - Added `cadops preview generate`, `cadops preview list`, and `cadops preview show <file>`.

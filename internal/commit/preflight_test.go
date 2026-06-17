@@ -81,6 +81,7 @@ func TestFindUncoveredChangedCADFiles(t *testing.T) {
 	got := FindUncoveredChangedCADFiles([]gitx.StatusEntry{
 		{Code: "M ", Path: "parts/gearbox.sldprt"},
 		{Code: "R ", Path: "exports/new.step", OldPath: "exports/old.step"},
+		{Code: "A ", Path: "boards/main.kicad_pcb"},
 		{Code: "A ", Path: "notes.txt"},
 	}, "*.step filter=lfs diff=lfs merge=lfs -text\n")
 	want := []string{"parts/gearbox.sldprt"}

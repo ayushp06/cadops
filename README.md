@@ -6,7 +6,7 @@ CadOps requires both `git` and `git lfs` to be installed on the user machine.
 
 ## Supported CAD Files
 
-CadOps detects and applies Git LFS policy to these CAD extensions by default:
+CadOps detects these CAD extensions by default:
 
 - SolidWorks: `.sldprt`, `.sldasm`
 - Generic part and exchange formats: `.prt`, `.step`, `.stp`, `.iges`, `.igs`
@@ -14,8 +14,9 @@ CadOps detects and applies Git LFS policy to these CAD extensions by default:
 - Fusion 360: `.f3d`, `.f3z`
 - Inventor: `.ipt`, `.iam`
 - FreeCAD: `.fcstd`
+- KiCad: `.kicad_pro`, `.kicad_pcb`, `.kicad_sch`, `.kicad_sym`, `.kicad_prl`, `.kicad_mod`, `.kicad_wks`, `.kicad_dru`
 
-The generated `.cadops.yaml` stores the active extension list as `tracked_extensions`, and `cadops init` writes matching `.gitattributes` rules so these files are tracked through Git LFS.
+The generated `.cadops.yaml` stores the active extension list as `tracked_extensions`, and `cadops init` writes `.gitattributes` rules for binary formats that should be tracked through Git LFS. KiCad project, board, schematic, symbol, footprint, worksheet, design-rule, and local-project files are tracked as normal text files by default.
 
 ## Installation
 
@@ -116,11 +117,13 @@ cd cadops-demo
 git init
 cadops init
 mkdir parts exports docs
+mkdir boards
 printf "fake solidworks part\n" > parts/part.sldprt
 printf "fake solidworks assembly\n" > parts/assembly.sldasm
 printf "fake fusion archive\n" > parts/archive.f3z
 printf "fake mesh\n" > exports/mesh.stl
 printf "ISO-10303-21;\n" > exports/export.step
+printf "(kicad_pcb)\n" > boards/main.kicad_pcb
 printf "notes\n" > docs/notes.txt
 cadops metadata generate
 cadops preview generate
@@ -170,7 +173,7 @@ Git LFS locking requires a remote that supports the LFS locking API, such as Git
 
 `cadops watch` monitors the Git repository recursively, reacts only to CAD extensions configured in `.cadops.yaml`, prints concise change lines, and can auto-stage changed CAD files when `auto_stage: true`.
 
-`cadops status` groups working tree changes into CAD and non-CAD files, reports missing or stale metadata records for changed CAD files, reports missing or stale preview records, and warns when changed CAD extensions lack matching Git LFS attributes.
+`cadops status` groups working tree changes into CAD and non-CAD files, reports missing or stale metadata records for changed CAD files, reports missing or stale preview records, and warns when changed CAD extensions that require Git LFS lack matching `.gitattributes` rules.
 
 `cadops snapshot` stages changed CAD files, regenerates the repo metadata and lightweight preview manifests before commit, includes `.cadops/metadata/manifest.json` and `.cadops/previews/manifest.json` in the same snapshot when refresh succeeds, and creates a timestamped snapshot commit like `snapshot: 2026-04-14 15:42`. Metadata and preview refresh warnings do not block snapshot creation.
 
@@ -188,9 +191,9 @@ Git LFS locking requires a remote that supports the LFS locking API, such as Git
 
 `cadops config show` prints the supported `.cadops.yaml` keys in a concise terminal format. `cadops config get <key>` returns a single value for `version`, `tracked_extensions`, `auto_stage`, `require_lfs`, or `locking_enabled`. Both commands can be run from the repository root or a subdirectory.
 
-`cadops doctor` validates Git, Git LFS, repository state, `.cadops.yaml`, `.gitattributes`, metadata and preview manifest state, CAD tracking coverage, and remote configuration. Checks are reported as `PASS`, `WARN`, or `FAIL`.
+`cadops doctor` validates Git, Git LFS, repository state, `.cadops.yaml`, `.gitattributes` coverage for LFS-backed CAD formats, metadata and preview manifest state, CAD tracking coverage, and remote configuration. Checks are reported as `PASS`, `WARN`, or `FAIL`.
 
-`cadops push` runs light CAD-aware pre-push checks, warns about local CAD changes or missing LFS coverage, and stops early when no remote is configured before delegating to `git push`.
+`cadops push` runs light CAD-aware pre-push checks, warns about local CAD changes or missing LFS coverage for LFS-backed CAD formats, and stops early when no remote is configured before delegating to `git push`.
 
 `cadops pull` verifies Git LFS availability, warns on a dirty working tree and modified CAD files, and then delegates to `git pull`.
 
@@ -200,9 +203,9 @@ Git LFS locking requires a remote that supports the LFS locking API, such as Git
 
 ## Limitations
 
-CadOps does not auto-commit from `watch`, does not implement semantic CAD diffing, does not implement geometry-aware metadata, and does not implement semantic CAD history yet. Preview V1 stores preview manifests and optional references to real sidecar images only; it does not render SolidWorks, NX, Inventor, or other proprietary CAD geometry.
+CadOps does not auto-commit from `watch`, does not implement semantic CAD or PCB diffing, does not implement geometry-aware metadata, and does not implement semantic CAD history yet. Preview V1 stores preview manifests and optional references to real sidecar images only; it does not render SolidWorks, NX, Inventor, KiCad, or other CAD geometry.
 
-CadOps relies on Git, Git LFS, filesystem metadata, SHA-256 hashes, configured CAD extensions, and stored CadOps manifests. It does not inspect proprietary CAD feature trees, assemblies, constraints, drawings, or model geometry.
+CadOps relies on Git, Git LFS where configured, filesystem metadata, SHA-256 hashes, configured CAD extensions, and stored CadOps manifests. It does not inspect proprietary CAD feature trees, assemblies, constraints, drawings, PCB nets, or model geometry.
 
 ## Development
 

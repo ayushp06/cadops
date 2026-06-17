@@ -51,6 +51,33 @@ func TestBuildRecord(t *testing.T) {
 	}
 }
 
+func TestBuildRecordForKiCadFile(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	path := filepath.Join(root, "boards", "main.kicad_pcb")
+	mustWriteFile(t, path, "(kicad_pcb)")
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("stat: %v", err)
+	}
+
+	record, err := BuildRecord(root, "boards/main.kicad_pcb", info)
+	if err != nil {
+		t.Fatalf("build record: %v", err)
+	}
+	if record.TypeName != "KiCad PCB" {
+		t.Fatalf("expected KiCad type, got %q", record.TypeName)
+	}
+	if record.GitLFSExpected {
+		t.Fatal("did not expect Git LFS for KiCad text files")
+	}
+	if record.LockingRecommended {
+		t.Fatal("did not expect locking for KiCad text files")
+	}
+}
+
 func TestHashFile(t *testing.T) {
 	t.Parallel()
 

@@ -75,6 +75,10 @@ func FindUncoveredChangedCADFiles(entries []gitx.StatusEntry, attributes string)
 			continue
 		}
 		seenExtensions[ext] = true
+		fileType, ok := cad.Lookup(ext)
+		if !ok || !fileType.UseLFS {
+			continue
+		}
 		if strings.Contains(attributes, gitx.AttributeLine(ext)) {
 			continue
 		}
